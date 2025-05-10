@@ -4,6 +4,53 @@
         <meta charset="UTF-8">
         <title>Custom Grid Element</title>
         <style>
+            body {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .fab-container {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+
+            .fab-button {
+                width: 50px;
+                height: 50px;
+                background-color: #4CAF50;
+                color: white;
+                font-size: 30px;
+                line-height: 50px;
+                text-align: center;
+                border-radius: 5px;
+                cursor: pointer;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .fab-dropdown {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                margin-top: 10px;
+            }
+
+            /* Hide via class */
+            .hidden {
+                display: none !important;
+            }
+
+            .dropdown-btn {
+                background-color: #f1f1f1;
+                border: none;
+                padding: 10px 15px;
+                margin: 5px 0;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+
             path-finding-simulator {
                 display: flex;
                 flex-direction: column;
@@ -11,7 +58,8 @@
                 background-color: #676090;
                 width: fit-content;
                 padding: 20px;
-                border-radius: 8px;            
+                border-radius: 8px;      
+                resize: both;
             }
 
             .panel{
@@ -86,7 +134,13 @@
     </head>
     <body>
 
-        <h2>Custom Grid Element</h2>
+        <div class="fab-container">
+            <div class="fab-button" onclick="toggleDropdown()">+</div>
+            <div class="fab-dropdown hidden" id="fabDropdown">
+              <button class="dropdown-btn" onclick="newSim()">New BFS</button>
+            </div>
+        </div>
+          
         <path-finding-simulator ></path-finding-simulator>
 
         <script>
@@ -137,12 +191,13 @@
             };
 
             class Simulator extends HTMLElement {
-                constructor() {
+                constructor(algo) {
                     super();
                     this.rows = parseInt(this.getAttribute('rows')) || 10;
                     this.cols = parseInt(this.getAttribute('cols')) || 10; 
                     this.arr = [];
 
+                    this.algo = algo || 'bfs'
                     this.simulation_state = 'creative'
                     this.start_cell = null
                     this.end_cell = null 
@@ -176,13 +231,13 @@
                         return this.head === this.tail;
                     }
                 };
-
+                
                 simulate(){
                     // this is still bfs
                     const queue = new Simulator.Queue(); // replace with more efficient someday
                     let current_cell = this.start_cell;
                     queue.push(current_cell)
-                    const animate = () => {
+                    const bfs = () => {
                         if(current_cell === this.end_cell){
                             console.log('congrats')
                             return
@@ -200,9 +255,9 @@
                             return
                         }
                         current_cell = queue.pop();
-                        setTimeout(animate,20);
+                        setTimeout(bfs,20);
                     }
-                    animate();
+                    bfs();
                 }
 
                 setSimulationState(state) {
@@ -302,6 +357,18 @@
                 }
             }
             customElements.define('path-finding-simulator', Simulator);
+
+            function newSim() {
+                console.log('newsim')
+                const sim = document.createElement('path-finding-simulator')
+                document.body.appendChild(sim);
+            }
+            function toggleDropdown() {
+                const dropdown = document.getElementById('fabDropdown');
+                dropdown.classList.toggle('hidden');
+            }
+
+
         </script>
 
     </body>

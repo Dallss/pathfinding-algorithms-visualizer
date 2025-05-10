@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resizable Div</title>
+    <style>
+        .resizable-div {
+            width: 200px;
+            height: 200px;
+            background-color: lightblue;
+            overflow: auto;
+            border: 2px solid #ccc;
+            position: relative;
+        }
+
+        /* Invisible resize zones on all corners */
+        .resize-zone {
+            position: absolute;
+            background-color: transparent;
+        }
+
+        .resize-tl {
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            cursor: nwse-resize;
+        }
+
+        .resize-tr {
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            cursor: nesw-resize;
+        }
+
+        .resize-bl {
+            bottom: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            cursor: nesw-resize;
+        }
+
+        .resize-br {
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            cursor: nwse-resize;
+        }
+    </style>
+</head>
+<body>
+    <div class="resizable-div">
+        <div class="resize-zone resize-tl"></div>
+        <div class="resize-zone resize-tr"></div>
+        <div class="resize-zone resize-bl"></div>
+        <div class="resize-zone resize-br"></div>
+        Content goes here.
+    </div>
+
+    <script>
+        const resizableDiv = document.querySelector('.resizable-div');
+        const zones = document.querySelectorAll('.resize-zone');
+        let isResizing = false;
+        let currentZone = null;
+        let initialWidth = 0;
+        let initialHeight = 0;
+        let initialX = 0;
+        let initialY = 0;
+
+        zones.forEach(zone => {
+            zone.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                currentZone = zone;
+                initialWidth = resizableDiv.offsetWidth;
+                initialHeight = resizableDiv.offsetHeight;
+                initialX = e.clientX;
+                initialY = e.clientY;
+
+                // Prevent text selection while resizing
+                e.preventDefault();
+
+                // Track mouse movements during resize
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+
+        function onMouseMove(e) {
+            if (isResizing) {
+                const dx = e.clientX - initialX;
+                const dy = e.clientY - initialY;
+
+                // Resize logic for different zones (corners)
+                if (currentZone.classList.contains('resize-tl')) {
+                    resizableDiv.style.width = `${initialWidth - dx}px`;
+                    resizableDiv.style.height = `${initialHeight - dy}px`;
+                    resizableDiv.style.left = `${resizableDiv.offsetLeft + dx}px`;
+                    resizableDiv.style.top = `${resizableDiv.offsetTop + dy}px`;
+                } else if (currentZone.classList.contains('resize-tr')) {
+                    resizableDiv.style.width = `${initialWidth + dx}px`;
+                    resizableDiv.style.height = `${initialHeight - dy}px`;
+                    resizableDiv.style.top = `${resizableDiv.offsetTop + dy}px`;
+                } else if (currentZone.classList.contains('resize-bl')) {
+                    resizableDiv.style.width = `${initialWidth - dx}px`;
+                    resizableDiv.style.height = `${initialHeight + dy}px`;
+                    resizableDiv.style.left = `${resizableDiv.offsetLeft + dx}px`;
+                } else if (currentZone.classList.contains('resize-br')) {
+                    resizableDiv.style.width = `${initialWidth + dx}px`;
+                    resizableDiv.style.height = `${initialHeight + dy}px`;
+                }
+            }
+        }
+
+        function onMouseUp() {
+            isResizing = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    </script>
+</body>
+</html>
