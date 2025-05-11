@@ -45,16 +45,19 @@ Array.prototype.get2DNeighbors = function(current_row, current_col) {
 };
 
 class Simulator extends HTMLElement {
-    constructor(algo) {
+    constructor() {
         super();
         this.rows = parseInt(this.getAttribute('rows')) || 10;
         this.cols = parseInt(this.getAttribute('cols')) || 10; 
         this.arr = [];
 
-        this.algo = algo || 'bfs'
         this.simulation_state = 'creative'
         this.start_cell = null
         this.end_cell = null 
+    }
+    connectedCallback() {
+        this.algo = this.getAttribute('algo') || 'bfs';
+        this.render();
     }
 
     static Queue = class {
@@ -86,32 +89,46 @@ class Simulator extends HTMLElement {
         }
     };
     
-    simulate(){
-        // this is still bfs
-        const queue = new Simulator.Queue(); // replace with more efficient someday
-        let current_cell = this.start_cell;
-        queue.push(current_cell)
-        const bfs = () => {
-            if(current_cell === this.end_cell){
-                console.log('congrats')
-                return
-            }
-            console.log('animating')
-    
-            const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
-            for(let n of neighbors){
-                console.log(n.isVisited)
-                if (n.type != 'wall' && !n.isVisited){
-                    queue.push(n)
+    getAlgo() {
+        const bfs = (speed=20) => {
+            const queue = new Simulator.Queue(); // replace with more efficient someday
+            let current_cell = this.start_cell;
+            queue.push(current_cell)
+            const animate = () => {
+                if(current_cell === this.end_cell){
+                    console.log('congrats')
+                    return
                 }
+        
+                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
+                for(let n of neighbors){
+                    if (n.type != 'wall' && !n.isVisited){
+                        queue.push(n)
+                    }
+                }
+                if(queue.isEmpty()){
+                    return
+                }
+                current_cell = queue.pop();
+                setTimeout(animate,speed);
             }
-            if(queue.isEmpty()){
-                return
-            }
-            current_cell = queue.pop();
-            setTimeout(bfs,20);
+            animate();
         }
-        bfs();
+        const djk = () => {
+            console.log('we runin djk')
+        }
+
+        console.log(this.algo)
+        if(this.algo == 'bfs')
+            return bfs
+        if(this.algo == 'djk')
+            return djk
+        return ()=>console.log('ERROR: invalid algo')
+    }
+
+    simulate(){
+        const algo = this.getAlgo();
+        algo();
     }
 
     setSimulationState(state) {
@@ -120,11 +137,13 @@ class Simulator extends HTMLElement {
         this.simulation_state = state
     }
 
-    connectedCallback() {
-        this.render();
-    }
-
     render() {
+        const title = document.createElement('h2');
+        title.style.width = '100%';
+        title.style.color = 'white';
+        title.innerHTML = this.getAttribute('title') || 'Untitled';
+
+        this.append(title)
         const grid_container_div = document.createElement('div');
         grid_container_div.classList.add('grid-map')
         grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, 40px)`;
@@ -211,5 +230,3 @@ class Simulator extends HTMLElement {
     }
 }
 customElements.define('path-finding-simulator', Simulator);
-
-export { Simulator }

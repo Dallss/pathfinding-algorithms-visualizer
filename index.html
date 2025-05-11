@@ -14,13 +14,16 @@
                 </div>
             </div>
               
-            <path-finding-simulator></path-finding-simulator>
+            <path-finding-simulator algo="djk" title="djk"></path-finding-simulator>
         
             <script type="module">
-                import { Simulator } from './simulator.js';      
-                function newSim() {
-                    console.log('newsim');
+                import './simulator.js';
+
+                function newSim(attributes) {
                     const sim = document.createElement('path-finding-simulator');
+                    for (const [key, value] of Object.entries(attributes)) {
+                        sim.setAttribute(key, value);
+                    }
                     document.body.appendChild(sim);
                 }
         
@@ -28,15 +31,13 @@
                     const dropdown = document.getElementById('fabDropdown');
                     dropdown.classList.toggle('hidden');
                 }
-        
-                // Attach event listener to the button after DOM is ready
+
                 document.addEventListener('DOMContentLoaded', () => {
                     const fabButton = document.querySelector('.fab-button');
                     const newbfs = document.querySelector('.newbfs')
                     fabButton.addEventListener('click', toggleDropdown);
-                    newbfs.addEventListener('click', newSim)
+                    newbfs.addEventListener('click', ()=>{newSim({algo: 'bfs', title: 'BFS'})})
                 });
             </script>
-        
     </body>
 </html>

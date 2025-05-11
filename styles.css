@@ -120,7 +120,11 @@ button {
 .simulate-button {
     background-color: #2e67c3;
 }
-
+h2 {
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-family:'Courier New', Courier, monospace;
+}
 .queued {
     background-color: yellow !important;
 }
