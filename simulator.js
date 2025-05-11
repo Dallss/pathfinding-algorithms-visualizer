@@ -1,48 +1,54 @@
 Array.prototype.get2DNeighbors = function(current_row, current_col) {
+    const directions = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, 1], [1, 1], [1, 0], [1, -1],
+        [0, -1]
+    ];
+
     const neighbors = [];
 
-    // Check Up-Left (-1, -1)
-    if (current_row - 1 >= 0 && current_col - 1 >= 0) {
-        neighbors.push(this[current_row - 1][current_col - 1]);
-    }
+    directions.forEach(([dRow, dCol]) => {
+        const newRow = current_row + dRow;
+        const newCol = current_col + dCol;
 
-    // Check Up (-1, 0)
-    if (current_row - 1 >= 0) {
-        neighbors.push(this[current_row - 1][current_col]);
-    }
+        if (
+            newRow >= 0 && newRow < this.length &&
+            newCol >= 0 && newCol < this[0].length
+        ) {
+            const cell = this[newRow][newCol];
+            if (cell.type !== 'wall') {
+                neighbors.push(cell);
+            }
+        }
+    });
 
-    // Check Up-Right (-1, +1)
-    if (current_row - 1 >= 0 && current_col + 1 < this[0].length) {
-        neighbors.push(this[current_row - 1][current_col + 1]);
-    }
+    return neighbors;
+};
 
-    // Check Right (0, +1)
-    if (current_col + 1 < this[0].length) {
-        neighbors.push(this[current_row][current_col + 1]);
-    }
+Array.prototype.get2DNeighborsWithWeight = function(current_row, current_col) {
+    const directions = [
+        [0, -1, 1], [1, 0, 1], [0, 1, 1], [-1, 0, 1],
+        [1, -1, 1.4], [1, 1, 1.4], [-1, 1, 1.4], [-1, -1, 1.4]
+    ];
+    
+    const neighbors = [];
 
-    // Check Down-Right (+1, +1)
-    if (current_row + 1 < this.length && current_col + 1 < this[0].length) {
-        neighbors.push(this[current_row + 1][current_col + 1]);
-    }
-
-    // Check Down (+1, 0)
-    if (current_row + 1 < this.length) {
-        neighbors.push(this[current_row + 1][current_col]);
-    }
-
-    // Check Down-Left (+1, -1)
-    if (current_row + 1 < this.length && current_col - 1 >= 0) {
-        neighbors.push(this[current_row + 1][current_col - 1]);
-    }
-
-    // Check Left (0, -1)
-    if (current_col - 1 >= 0) {
-        neighbors.push(this[current_row][current_col - 1]);
+    for (const [dRow, dCol, weight] of directions) {
+        const newRow = current_row + dRow, newCol = current_col + dCol;
+        if (
+            newRow >= 0 && newRow < this.length &&
+            newCol >= 0 && newCol < this[0].length
+        ) {
+            const cell = this[newRow][newCol];
+            if (cell.type !== 'wall') {
+                neighbors.push({ cell, weight });
+            }
+        }
     }
 
     return neighbors;
 };
+
 
 class Simulator extends HTMLElement {
     constructor() {
@@ -129,11 +135,37 @@ class Simulator extends HTMLElement {
             return this.top === 0;
         }
     };
+    static PriorityQueue = class {
+        constructor() {
+            this.items = [];
+        }
+    
+        push(node) {
+            node.cell.style.backgroundColor = 'blue';
+            
+            this.items.push(node);
+            this.items.sort((a, b) => a.dist - b.dist);
+        }
+    
+        pop() {
+            if (this.isEmpty()) return null;
+    
+            const node = this.items.shift();
+            node.cell.style.backgroundColor = 'yellow';
+            return node;
+        }
+    
+        isEmpty() {
+            return this.items.length === 0;
+        }
+    };
+    
+    
     
     
     getAlgo() {
         const bfs = (speed=20) => {
-            const queue = new Simulator.Queue(); // replace with more efficient someday
+            const queue = new Simulator.Queue();
             let current_cell = this.start_cell;
             queue.push(current_cell)
             const animate = () => {
@@ -149,13 +181,13 @@ class Simulator extends HTMLElement {
                     }
                 }
                 if(queue.isEmpty()){
+                    console.log('failed');
                     return
                 }
                 current_cell = queue.pop();
                 setTimeout(animate,speed);
             }
             animate();
-            console.log('failed');
         }
         const dfs = (speed=20) => {
             const queue = new Simulator.Stack(); // replace with more efficient someday
@@ -166,46 +198,70 @@ class Simulator extends HTMLElement {
                     console.log('congrats')
                     return
                 }
-        
                 const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
                 for(let n of neighbors){
-                    if (n.type != 'wall' && !n.isVisited){
+                    if (!n.isVisited){
                         queue.push(n)
                     }
                 }
                 if(queue.isEmpty()){
+                    console.log('failed');
                     return
                 }
                 current_cell = queue.pop();
                 setTimeout(animate,speed);
             }
             animate();
-            console.log('failed');
         }
         const djk = (speed=20) => {
-            const queue = new Simulator.Queue(); // replace with more efficient someday
-            let current_cell = this.start_cell;
-            queue.push(current_cell)
+            const q = new Simulator.PriorityQueue();
+            const visited_cells = new Set();
+
+            let current_node = { cell: this.start_cell, dist: 0, prev: null }
+            q.push(current_node)
+
             const animate = () => {
-                if(current_cell === this.end_cell){
+                if(current_node.cell === this.end_cell){
                     console.log('congrats')
-                    return
+                    const out = []
+
+                    while(current_node.prev){
+                        current_node.cell.style.backgroundColor = 'green'
+                        out.push(current_node.cell)
+                        current_node = current_node.prev
+                    }
+                    console.log(out)
                 }
-        
-                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
-                for(let n of neighbors){
-                    if (n.type != 'wall' && !n.isVisited){
-                        queue.push(n)
+                const children = this.arr.get2DNeighborsWithWeight(current_node.cell.row, current_node.cell.col);
+                for(let child_node of children){ 
+                    if ( child_node.dist == undefined ) {
+                        child_node.dist = current_node.dist + child_node.weight;
+                        child_node.prev = current_node
+                    }
+                    else {
+                        const cur_to_child = current_node.dist + child_node.weight;
+                        if(cur_to_child < child_node.dist){
+                            child_node.dist = cur_to_child
+                            child_node.prev = current_node
+                        }
+                        
+                    }
+                    if(!visited_cells.has(child_node.cell)){
+                        visited_cells.add(child_node.cell)
+                        q.push(child_node)
                     }
                 }
-                if(queue.isEmpty()){
+
+                if(q.isEmpty()){
+                    console.log('no way')
                     return
                 }
-                current_cell = queue.pop();
+
+                current_node.cell.style.backgroundColor = 'yellow'
+                current_node = q.pop();
                 setTimeout(animate,speed);
             }
             animate();
-            console.log('failed');
         }
 
         if(this.algo == 'bfs')
