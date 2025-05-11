@@ -10,8 +10,10 @@
             <div class="fab-container">
                 <div class="fab-button">+</div>
                 <div class="fab-dropdown hidden" id="fabDropdown">
-                    <button class="dropdown-btn newbfs">New BFS</button>
-                </div>
+                    <button class="dropdown-btn" data-algo="bfs" data-title="BFS">BFS</button>
+                    <button class="dropdown-btn" data-algo="dfs" data-title="DFS">DFS</button>
+                    <button class="dropdown-btn" data-algo="djk" data-title="Djkstra's">Djkstra's</button>
+                </div>                
             </div>
               
             <path-finding-simulator algo="djk" title="djk"></path-finding-simulator>
@@ -34,10 +36,19 @@
 
                 document.addEventListener('DOMContentLoaded', () => {
                     const fabButton = document.querySelector('.fab-button');
-                    const newbfs = document.querySelector('.newbfs')
+                    const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
+
                     fabButton.addEventListener('click', toggleDropdown);
-                    newbfs.addEventListener('click', ()=>{newSim({algo: 'bfs', title: 'BFS'})})
+
+                    dropdownButtons.forEach(button => {
+                        button.addEventListener('click', () => {
+                            const algo = button.dataset.algo;
+                            const title = button.dataset.title;
+                            newSim({ algo, title });
+                        });
+                    });
                 });
+
             </script>
     </body>
 </html>

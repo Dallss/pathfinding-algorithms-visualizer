@@ -57,9 +57,23 @@ class Simulator extends HTMLElement {
     }
     connectedCallback() {
         this.algo = this.getAttribute('algo') || 'bfs';
+        const panel = this
+        while (panel.firstChild) {
+            panel.removeChild(panel.firstChild);
+        }
+
         this.render();
     }
+    reset() {
+        this.rows = parseInt(this.getAttribute('rows')) || 10;
+        this.cols = parseInt(this.getAttribute('cols')) || 10; 
+        this.arr = [];
 
+        this.simulation_state = 'creative'
+        this.start_cell = null
+        this.end_cell = null 
+        this.connectedCallback();
+    }
     static Queue = class {
         constructor() {
         this.items = {};
@@ -88,6 +102,34 @@ class Simulator extends HTMLElement {
             return this.head === this.tail;
         }
     };
+    static Stack = class {
+        constructor() {
+            this.items = {};
+            this.top = 0;
+        }
+    
+        push(element) {
+            element.style.backgroundColor = 'blue';
+            element.isVisited = true;
+            this.items[this.top] = element;
+            this.top++;
+        }
+    
+        pop() {
+            if (this.isEmpty()) return null;
+    
+            this.top--;
+            const value = this.items[this.top];
+            delete this.items[this.top];
+            value.style.backgroundColor = 'yellow';
+            return value;
+        }
+    
+        isEmpty() {
+            return this.top === 0;
+        }
+    };
+    
     
     getAlgo() {
         const bfs = (speed=20) => {
@@ -113,14 +155,63 @@ class Simulator extends HTMLElement {
                 setTimeout(animate,speed);
             }
             animate();
+            console.log('failed');
         }
-        const djk = () => {
-            console.log('we runin djk')
+        const dfs = (speed=20) => {
+            const queue = new Simulator.Stack(); // replace with more efficient someday
+            let current_cell = this.start_cell;
+            queue.push(current_cell)
+            const animate = () => {
+                if(current_cell === this.end_cell){
+                    console.log('congrats')
+                    return
+                }
+        
+                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
+                for(let n of neighbors){
+                    if (n.type != 'wall' && !n.isVisited){
+                        queue.push(n)
+                    }
+                }
+                if(queue.isEmpty()){
+                    return
+                }
+                current_cell = queue.pop();
+                setTimeout(animate,speed);
+            }
+            animate();
+            console.log('failed');
+        }
+        const djk = (speed=20) => {
+            const queue = new Simulator.Queue(); // replace with more efficient someday
+            let current_cell = this.start_cell;
+            queue.push(current_cell)
+            const animate = () => {
+                if(current_cell === this.end_cell){
+                    console.log('congrats')
+                    return
+                }
+        
+                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
+                for(let n of neighbors){
+                    if (n.type != 'wall' && !n.isVisited){
+                        queue.push(n)
+                    }
+                }
+                if(queue.isEmpty()){
+                    return
+                }
+                current_cell = queue.pop();
+                setTimeout(animate,speed);
+            }
+            animate();
+            console.log('failed');
         }
 
-        console.log(this.algo)
         if(this.algo == 'bfs')
             return bfs
+        if(this.algo == 'dfs')
+            return dfs
         if(this.algo == 'djk')
             return djk
         return ()=>console.log('ERROR: invalid algo')
@@ -153,13 +244,19 @@ class Simulator extends HTMLElement {
         const select_end_button = document.createElement('button');
         const select_start_button = document.createElement('button');
         const simulate_button = document.createElement('button');
+        const reset_button = document.createElement('button');
+
         select_start_button.innerHTML = 'Select Start'
         select_end_button.innerHTML = 'Select End'
         simulate_button.innerHTML = 'Start Simulation'
+        reset_button.innerHTML = 'reset'
+
+        reset_button.classList.add('reset')
         select_start_button.classList.add('start')
         select_end_button.classList.add('end')
         simulate_button.classList.add('simulate-button')
         
+        reset_button.onclick = () => this.reset();
         select_start_button.onclick = () => this.setSimulationState('select-start');
         select_end_button.onclick = () => this.setSimulationState('select-end');
         simulate_button.onclick = () => this.simulate();
@@ -168,6 +265,7 @@ class Simulator extends HTMLElement {
         panel.appendChild(select_start_button)
         panel.appendChild(select_end_button)
         panel.appendChild(simulate_button)
+        panel.appendChild(reset_button)
 
         this.appendChild(grid_container_div)
         this.appendChild(panel);

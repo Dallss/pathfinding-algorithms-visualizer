@@ -60,6 +60,7 @@ path-finding-simulator {
     background-color: #febcd5;
     height: 150px;
     min-width: 200px;
+    align-self: center;
     margin-top: 1rem;
     border-radius: 10px;
     display: flex;
@@ -69,8 +70,9 @@ path-finding-simulator {
 .grid-map {
     background-color: rgb(182, 182, 182);
     display: grid;
+    width: fit-content;   /* or set a specific px/em/% width */
+    height: fit-content; 
     gap: 1px;
-    /* Inspect why this is needed. its so hardcoded */
     padding-right: 3px;
     padding-bottom: 3px; 
 }
@@ -113,6 +115,9 @@ button {
     margin: 10px;
     border-radius: 10px;
     padding: 10px;
+}
+.reset {
+    background-color: #676090;
 }
 .highlight{
     background-color: yellow ;
