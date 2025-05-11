@@ -136,15 +136,16 @@ class Simulator extends HTMLElement {
         }
     };
     static PriorityQueue = class {
-        constructor() {
+        constructor(attr) {
             this.items = [];
+            this.attr = attr || 'dist'
         }
     
         push(node) {
-            node.cell.style.backgroundColor = 'blue';
-            
+            node.cell.style.backgroundColor = 'gray';
             this.items.push(node);
-            this.items.sort((a, b) => a.dist - b.dist);
+
+            this.items.sort((a, b) => a[this.attr] - b[this.attr]);
         }
     
         pop() {
@@ -162,7 +163,7 @@ class Simulator extends HTMLElement {
     
     
     
-    
+    // TODO: This works, but clean it up soon
     getAlgo() {
         const bfs = (speed=20) => {
             const queue = new Simulator.Queue();
@@ -190,7 +191,7 @@ class Simulator extends HTMLElement {
             animate();
         }
         const dfs = (speed=20) => {
-            const queue = new Simulator.Stack(); // replace with more efficient someday
+            const queue = new Simulator.Stack();
             let current_cell = this.start_cell;
             queue.push(current_cell)
             const animate = () => {
@@ -257,7 +258,59 @@ class Simulator extends HTMLElement {
                     return
                 }
 
-                current_node.cell.style.backgroundColor = 'yellow'
+                current_node = q.pop();
+                setTimeout(animate,speed);
+            }
+            animate();
+        }
+        const astar = (speed=20) => {
+            const q = new Simulator.PriorityQueue('mdist');
+            const visited_cells = new Set();
+
+            let current_node = { cell: this.start_cell, dist: 0, prev: null }
+            q.push(current_node)
+
+            const animate = () => {
+                if(current_node.cell === this.end_cell){
+                    console.log('congrats')
+                    const out = []
+
+                    while(current_node.prev){
+                        current_node.cell.style.backgroundColor = 'green'
+                        out.push(current_node.cell)
+                        current_node = current_node.prev
+                    }
+                    console.log(out)
+                    return
+                }
+                const children = this.arr.get2DNeighborsWithWeight(current_node.cell.row, current_node.cell.col);
+                for(let child_node of children){ 
+                    if ( child_node.dist == undefined ) {
+                        child_node.dist = current_node.dist + child_node.weight;
+                        child_node.prev = current_node
+                    }
+                    else {
+                        const cur_to_child = current_node.dist + child_node.weight;
+                        if(cur_to_child < child_node.dist){
+                            child_node.dist = cur_to_child
+                            child_node.prev = current_node
+                        }
+                        
+                    }
+                    if(!visited_cells.has(child_node.cell)){
+                        const mdist = Math.abs(this.end_cell.row - child_node.cell.row) + Math.abs(this.end_cell.col - child_node.cell.col);
+                        console.log(mdist)
+                        child_node.mdist = child_node.dist + mdist;
+                        visited_cells.add(child_node.cell)
+                        q.push(child_node)
+                    }
+                }
+
+                if(q.isEmpty()){
+                    console.log('no way')
+                    return
+                }
+
                 current_node = q.pop();
                 setTimeout(animate,speed);
             }
@@ -270,6 +323,8 @@ class Simulator extends HTMLElement {
             return dfs
         if(this.algo == 'djk')
             return djk
+        if (this.algo == 'astar')
+            return astar
         return ()=>console.log('ERROR: invalid algo')
     }
 
