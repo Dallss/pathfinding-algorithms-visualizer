@@ -17,7 +17,6 @@
                 </div>                
             </div>
             
-            
             <draggable-element>
                 <path-finding-simulator algo="astar" title="watashiwastar">
                 </path-finding-simulator>
@@ -29,11 +28,13 @@
                 import './draggable.js'
 
                 function newSim(attributes) {
+                    const draggable = document.createElement('draggable-element');
                     const sim = document.createElement('path-finding-simulator');
                     for (const [key, value] of Object.entries(attributes)) {
                         sim.setAttribute(key, value);
                     }
-                    document.body.appendChild(sim);
+                    document.body.appendChild(draggable);
+                    draggable.appendChild(sim);
                 }
         
                 function toggleDropdown() {
@@ -44,7 +45,6 @@
                 document.addEventListener('DOMContentLoaded', () => {
                     const fabButton = document.querySelector('.fab-button');
                     const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
-
                     fabButton.addEventListener('click', toggleDropdown);
 
                     dropdownButtons.forEach(button => {
