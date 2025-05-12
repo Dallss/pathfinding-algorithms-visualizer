@@ -161,8 +161,6 @@ class Simulator extends HTMLElement {
         }
     };
     
-    
-    
     // TODO: This works, but clean it up soon
     getAlgo() {
         const bfs = (speed=20) => {
@@ -352,29 +350,19 @@ class Simulator extends HTMLElement {
         grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, 40px)`;
 
         const panel = document.createElement('div');
-        const select_end_button = document.createElement('button');
-        const select_start_button = document.createElement('button');
         const simulate_button = document.createElement('button');
         const reset_button = document.createElement('button');
 
-        select_start_button.innerHTML = 'Select Start'
-        select_end_button.innerHTML = 'Select End'
         simulate_button.innerHTML = 'Start Simulation'
         reset_button.innerHTML = 'reset'
 
         reset_button.classList.add('reset')
-        select_start_button.classList.add('start')
-        select_end_button.classList.add('end')
         simulate_button.classList.add('simulate-button')
         
-        reset_button.onclick = () => this.reset();
-        select_start_button.onclick = () => this.setSimulationState('select-start');
-        select_end_button.onclick = () => this.setSimulationState('select-end');
+        reset_button.onclick = () => this.reset(); 
         simulate_button.onclick = () => this.simulate();
 
         panel.classList.add('panel');
-        panel.appendChild(select_start_button)
-        panel.appendChild(select_end_button)
         panel.appendChild(simulate_button)
         panel.appendChild(reset_button)
 
@@ -387,18 +375,21 @@ class Simulator extends HTMLElement {
                 const cell = document.createElement('div');
                 grid_container_div.appendChild(cell);
                 cell.classList.add('cell');
+                cell.isNotDraggable = true;
                 cell.type = 'empty'
                 cell.row = r;
                 cell.col = c;
                 cell.isVisited = false;
-                cell.setType= function (type = 'empty') {
-                    const types = ['empty', 'start', 'end', 'wall']
+                cell.setType = function (type = 'empty') {
+                    const types = ['empty', 'start', 'end', 'wall'];
                     types.forEach(t => this.classList.remove(t));
                     this.classList.add(type);
-                    
-                    this.type = type
-                }
+                    this.type = type;
                 
+                    // Make only start/end draggable
+                    this.setAttribute('draggable', type === 'start' || type === 'end');
+                };
+                                
                 cell.addEventListener('click', () => {
 
                     if (this.simulation_state == 'select-start'){
@@ -423,13 +414,39 @@ class Simulator extends HTMLElement {
                     }
                     cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
                 });
+
+                cell.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ row: cell.row, col: cell.col, type: cell.type }));
+                });
+                
+                cell.addEventListener('dragover', (e) => {
+                    e.preventDefault(); // Allow drop
+                });
+                
+                cell.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                
+                    const sourceCell = this.arr[data.row][data.col];
+                    const targetCell = this.arr[cell.row][cell.col];
+                
+                    // Don't allow drop on wall
+                    if (targetCell.type === 'wall') return;
+                
+                    if (sourceCell.type === 'start') this.start_cell = targetCell;
+                    if (targetCell.type === 'start') this.start_cell = sourceCell;
+                    if (sourceCell.type === 'end') this.end_cell = targetCell;
+                    if (targetCell.type === 'end') this.end_cell = sourceCell;
+                    
+                    sourceCell.setType(targetCell.type);
+                    targetCell.setType(data.type);    
+                });
                 
                 col.push(cell)
             }
             this.arr.push(col)
         }
 
-        
         const start_cell = this.arr[0][0]
         const end_cell = this.arr[this.rows-1][this.cols-1]
         start_cell.setType('start')
