@@ -54,7 +54,7 @@ class Simulator extends HTMLElement {
     constructor() {
         super();
 
-        this.speed = 100;
+        this.speed = 50;
 
         this.rows = parseInt(this.getAttribute('rows')) || 10;
         this.cols = parseInt(this.getAttribute('cols')) || 10; 
@@ -473,8 +473,8 @@ class Simulator extends HTMLElement {
         this.start_cell = start_cell
         this.end_cell = end_cell
 
-
-        const top_SpeedDelay = 1000;
+        //speed slider
+        const top_SpeedDelay = 800;
         const speed_control = document.createElement('div');
         speed_control.classList.add('speed-control');
 
@@ -486,7 +486,7 @@ class Simulator extends HTMLElement {
         speed_slider.setAttribute('type', 'range');
         speed_slider.setAttribute('min', '0');
         speed_slider.setAttribute('max', top_SpeedDelay.toString());
-        speed_slider.setAttribute('value', this.speed);
+        speed_slider.setAttribute('value', top_SpeedDelay - this.speed);
         speed_slider.classList.add('speed-slider');
 
         // Update speed dynamically
