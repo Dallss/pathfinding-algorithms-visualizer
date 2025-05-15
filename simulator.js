@@ -380,7 +380,7 @@ class Simulator extends HTMLElement {
             if (parent) parent.remove();
         };
 
-        panel.appendChild(close_button); // 👈 Append close button to panel
+        panel.appendChild(close_button);
 
         this.appendChild(grid_container_div)
         this.appendChild(panel);
@@ -388,6 +388,7 @@ class Simulator extends HTMLElement {
         this.appendChild(grid_container_div)
         this.appendChild(panel);
 
+        // grid cells
         for (let r = 0; r < this.rows; r++) {
             const col = []
             for (let c = 0; c < this.cols; c++) {
@@ -408,32 +409,25 @@ class Simulator extends HTMLElement {
                     // Make only start/end draggable
                     this.setAttribute('draggable', type === 'start' || type === 'end');
                 };
-                                
-                cell.addEventListener('click', () => {
-
-                    if (this.simulation_state == 'select-start'){
-                        this.start_cell.setType()
-                        cell.setType('start')
-                        this.start_cell = cell
-
-                        this.setSimulationState('creative')
-                        return
-                    }
-                    if (this.simulation_state == 'select-end'){
-                        this.end_cell.setType()     
-                        cell.setType('end')
-                        this.end_cell = cell
-
-                        this.setSimulationState('creative')
-                        return
-                    }
-
+                  
+                // for toggling walls
+                const togglewall = () => {
                     if(cell.type == 'start' || cell.type == 'end'){
                         return
                     }
                     cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
+                }
+                cell.addEventListener('click', togglewall);
+                let isMouseDown = false;
+                document.addEventListener('mousedown', () => isMouseDown = true);
+                document.addEventListener('mouseup', () => isMouseDown = false);
+                cell.addEventListener('mouseover', () => {
+                    if (isMouseDown) {
+                        togglewall();
+                    }
                 });
 
+                
                 cell.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', JSON.stringify({ row: cell.row, col: cell.col, type: cell.type }));
                 });
