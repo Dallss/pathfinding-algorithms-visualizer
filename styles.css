@@ -133,3 +133,51 @@ h2 {
 .queued {
     background-color: yellow !important;
 }
+
+
+
+/* slider */
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .speed-label {
+    color: rgb(1, 1, 1);
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+  }
+  
+  .speed-slider {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 6px;
+    background: #ddd;
+    border-radius: 5px;
+    background: rgb(132, 55, 132);
+    outline: none;
+    transition: background 0.3s;
+  }
+  
+  .speed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #9c27b0;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+  }
+  
+  .speed-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #9c27b0;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  

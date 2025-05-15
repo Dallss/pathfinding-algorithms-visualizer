@@ -29,7 +29,7 @@ class Draggable extends HTMLElement {
       document.removeEventListener('mousemove', this.onMouseMove);
       document.removeEventListener('mouseup', this.onMouseUp);
     }
-  
+    
     onMouseDown(e) {
         console.log(e.target)
         const interactiveTags = ['button', 'a', 'input', 'select', 'textarea', 'label'];

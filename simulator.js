@@ -53,6 +53,9 @@ Array.prototype.get2DNeighborsWithWeight = function(current_row, current_col) {
 class Simulator extends HTMLElement {
     constructor() {
         super();
+
+        this.speed = 100;
+
         this.rows = parseInt(this.getAttribute('rows')) || 10;
         this.cols = parseInt(this.getAttribute('cols')) || 10; 
         this.arr = [];
@@ -328,7 +331,7 @@ class Simulator extends HTMLElement {
 
     simulate(){
         const algo = this.getAlgo();
-        algo();
+        algo(this.speed);
     }
 
     setSimulationState(state) {
@@ -469,6 +472,32 @@ class Simulator extends HTMLElement {
         end_cell.setType('end')
         this.start_cell = start_cell
         this.end_cell = end_cell
+
+
+        const top_SpeedDelay = 1000;
+        const speed_control = document.createElement('div');
+        speed_control.classList.add('speed-control');
+
+        const speed_label = document.createElement('label');
+        speed_label.classList.add('speed-label');
+        speed_label.innerText = 'Speed:';
+
+        const speed_slider = document.createElement('input');
+        speed_slider.setAttribute('type', 'range');
+        speed_slider.setAttribute('min', '0');
+        speed_slider.setAttribute('max', top_SpeedDelay.toString());
+        speed_slider.setAttribute('value', this.speed);
+        speed_slider.classList.add('speed-slider');
+
+        // Update speed dynamically
+        speed_slider.addEventListener('input', () => {
+            this.speed = parseInt(top_SpeedDelay - speed_slider.value);
+        });
+
+        speed_control.appendChild(speed_label);
+        speed_control.appendChild(speed_slider);
+        panel.appendChild(speed_control);
+
     }
 }
 customElements.define('path-finding-simulator', Simulator);
