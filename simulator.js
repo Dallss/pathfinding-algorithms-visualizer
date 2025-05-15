@@ -366,6 +366,22 @@ class Simulator extends HTMLElement {
         panel.appendChild(simulate_button)
         panel.appendChild(reset_button)
 
+        const close_button = document.createElement('button');
+        close_button.innerHTML = 'Close';
+        close_button.classList.add('close-button');
+        close_button.style.marginLeft = '10px';
+
+        close_button.onclick = () => {
+            const parent = this.parentElement;
+            this.remove();
+            if (parent) parent.remove();
+        };
+
+        panel.appendChild(close_button); // 👈 Append close button to panel
+
+        this.appendChild(grid_container_div)
+        this.appendChild(panel);
+
         this.appendChild(grid_container_div)
         this.appendChild(panel);
 
