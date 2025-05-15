@@ -60,6 +60,8 @@ class Simulator extends HTMLElement {
         this.arr = [];
 
         this.simulation_state = 'creative'
+        this.isMouseDown = false;
+        this.grid = null
         this.start_cell = null
         this.end_cell = null 
     }
@@ -163,16 +165,18 @@ class Simulator extends HTMLElement {
     
     buildGrid() {
         // Remove old grid if it exists
-        const oldGrid = document.getElementById('grid-container');
-        if (oldGrid) oldGrid.remove();
-
+        if (this.grid) this.grid.remove();
         this.arr = [];
+
         const grid_container_div = document.createElement('div');
         grid_container_div.id = 'grid-container';
         grid_container_div.classList.add('grid-map')
+        this.grid = grid_container_div
+
         grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, 40px)`;
         grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, 40px)`;
 
+        console.log(this.rows);
         for (let r = 0; r < this.rows; r++) {
             const col = []
             for (let c = 0; c < this.cols; c++) {
