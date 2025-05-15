@@ -1,13 +1,6 @@
 class Draggable extends HTMLElement {
     constructor() {
       super();
-  
-      // Basic styles
-      this.style.width = 'fit-content';
-      this.style.height = 'fit-content';
-      this.style.padding = '2px';
-      this.style.position = 'absolute'; // required for movement
-  
       // Instance variables
       this.isDragging = false;
       this.offsetX = 0;
@@ -20,6 +13,12 @@ class Draggable extends HTMLElement {
     }
   
     connectedCallback() {
+      // Basic styles
+      this.style.width = 'fit-content';
+      this.style.height = 'fit-content';
+      this.style.padding = '2px';
+      this.style.position = 'absolute'; 
+        
       this.addEventListener('mousedown', this.onMouseDown);
       document.addEventListener('mousemove', this.onMouseMove);
       document.addEventListener('mouseup', this.onMouseUp);
@@ -58,7 +57,6 @@ class Draggable extends HTMLElement {
     onMouseUp() {
       this.isDragging = false;
     }
-  }
-  
-  customElements.define('draggable-element', Draggable);
+}
+customElements.define('draggable-element', Draggable);
   

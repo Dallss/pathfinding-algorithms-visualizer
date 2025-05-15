@@ -29,12 +29,12 @@
 
                 function newSim(attributes) {
                     const draggable = document.createElement('draggable-element');
-                    const sim = document.createElement('path-finding-simulator');
+                    const simulator = document.createElement('path-finding-simulator');
                     for (const [key, value] of Object.entries(attributes)) {
-                        sim.setAttribute(key, value);
+                        simulator.setAttribute(key, value);
                     }
                     document.body.appendChild(draggable);
-                    draggable.appendChild(sim);
+                    draggable.appendChild(simulator);
                 }
         
                 function toggleDropdown() {
