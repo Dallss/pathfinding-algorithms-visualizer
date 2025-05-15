@@ -53,7 +53,6 @@ Array.prototype.get2DNeighborsWithWeight = function(current_row, current_col) {
 class Simulator extends HTMLElement {
     constructor() {
         super();
-
         this.speed = 50;
 
         this.rows = parseInt(this.getAttribute('rows')) || 10;
@@ -74,8 +73,6 @@ class Simulator extends HTMLElement {
         this.render();
     }
     reset() {
-        this.rows = parseInt(this.getAttribute('rows')) || 10;
-        this.cols = parseInt(this.getAttribute('cols')) || 10; 
         this.arr = [];
 
         this.simulation_state = 'creative'
@@ -164,6 +161,98 @@ class Simulator extends HTMLElement {
         }
     };
     
+    buildGrid() {
+        // Remove old grid if it exists
+        const oldGrid = document.getElementById('grid-container');
+        if (oldGrid) oldGrid.remove();
+
+        this.arr = [];
+        const grid_container_div = document.createElement('div');
+        grid_container_div.id = 'grid-container';
+        grid_container_div.classList.add('grid-map')
+        grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, 40px)`;
+        grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, 40px)`;
+
+        for (let r = 0; r < this.rows; r++) {
+            const col = []
+            for (let c = 0; c < this.cols; c++) {
+                const cell = document.createElement('div');
+                grid_container_div.appendChild(cell);
+                cell.classList.add('cell');
+                cell.isNotDraggable = true;
+                cell.type = 'empty'
+                cell.row = r;
+                cell.col = c;
+                cell.isVisited = false;
+                cell.setType = function (type = 'empty') {
+                    const types = ['empty', 'start', 'end', 'wall'];
+                    types.forEach(t => this.classList.remove(t));
+                    this.classList.add(type);
+                    this.type = type;
+                
+                    // Make only start/end draggable
+                    this.setAttribute('draggable', type === 'start' || type === 'end');
+                };
+                  
+                // for toggling walls
+                const togglewall = () => {
+                    if(cell.type == 'start' || cell.type == 'end'){
+                        return
+                    }
+                    cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
+                }
+                cell.addEventListener('click', togglewall);
+                let isMouseDown = false;
+                document.addEventListener('mousedown', () => isMouseDown = true);
+                document.addEventListener('mouseup', () => isMouseDown = false);
+                cell.addEventListener('mouseover', () => {
+                    if (isMouseDown) {
+                        togglewall();
+                    }
+                });
+
+
+                cell.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ row: cell.row, col: cell.col, type: cell.type }));
+                });
+                
+                cell.addEventListener('dragover', (e) => {
+                    e.preventDefault(); // Allow drop
+                });
+                
+                cell.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                
+                    const sourceCell = this.arr[data.row][data.col];
+                    const targetCell = this.arr[cell.row][cell.col];
+                
+                    // Don't allow drop on wall
+                    if (targetCell.type === 'wall') return;
+                
+                    if (sourceCell.type === 'start') this.start_cell = targetCell;
+                    if (targetCell.type === 'start') this.start_cell = sourceCell;
+                    if (sourceCell.type === 'end') this.end_cell = targetCell;
+                    if (targetCell.type === 'end') this.end_cell = sourceCell;
+                    
+                    sourceCell.setType(targetCell.type);
+                    targetCell.setType(data.type);    
+                });
+                
+                col.push(cell)
+            }
+            this.arr.push(col)
+        }
+        const start_cell = this.arr[0][0]
+        const end_cell = this.arr[this.rows-1][this.cols-1]
+        start_cell.setType('start')
+        end_cell.setType('end')
+        this.start_cell = start_cell
+        this.end_cell = end_cell
+
+        return grid_container_div
+    }
+
     // TODO: This works, but clean it up soon
     getAlgo() {
         const bfs = (speed=20) => {
@@ -347,10 +436,8 @@ class Simulator extends HTMLElement {
         title.innerHTML = this.getAttribute('title') || 'Untitled';
 
         this.append(title)
-        const grid_container_div = document.createElement('div');
-        grid_container_div.classList.add('grid-map')
-        grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, 40px)`;
-        grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, 40px)`;
+        const grid = this.buildGrid();
+        this.insertBefore(grid, title.nextSibling);
 
         const panel = document.createElement('div');
         const simulate_button = document.createElement('button');
@@ -381,91 +468,7 @@ class Simulator extends HTMLElement {
         };
 
         panel.appendChild(close_button);
-
-        this.appendChild(grid_container_div)
         this.appendChild(panel);
-
-        this.appendChild(grid_container_div)
-        this.appendChild(panel);
-
-        // grid cells
-        for (let r = 0; r < this.rows; r++) {
-            const col = []
-            for (let c = 0; c < this.cols; c++) {
-                const cell = document.createElement('div');
-                grid_container_div.appendChild(cell);
-                cell.classList.add('cell');
-                cell.isNotDraggable = true;
-                cell.type = 'empty'
-                cell.row = r;
-                cell.col = c;
-                cell.isVisited = false;
-                cell.setType = function (type = 'empty') {
-                    const types = ['empty', 'start', 'end', 'wall'];
-                    types.forEach(t => this.classList.remove(t));
-                    this.classList.add(type);
-                    this.type = type;
-                
-                    // Make only start/end draggable
-                    this.setAttribute('draggable', type === 'start' || type === 'end');
-                };
-                  
-                // for toggling walls
-                const togglewall = () => {
-                    if(cell.type == 'start' || cell.type == 'end'){
-                        return
-                    }
-                    cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
-                }
-                cell.addEventListener('click', togglewall);
-                let isMouseDown = false;
-                document.addEventListener('mousedown', () => isMouseDown = true);
-                document.addEventListener('mouseup', () => isMouseDown = false);
-                cell.addEventListener('mouseover', () => {
-                    if (isMouseDown) {
-                        togglewall();
-                    }
-                });
-
-                
-                cell.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', JSON.stringify({ row: cell.row, col: cell.col, type: cell.type }));
-                });
-                
-                cell.addEventListener('dragover', (e) => {
-                    e.preventDefault(); // Allow drop
-                });
-                
-                cell.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                
-                    const sourceCell = this.arr[data.row][data.col];
-                    const targetCell = this.arr[cell.row][cell.col];
-                
-                    // Don't allow drop on wall
-                    if (targetCell.type === 'wall') return;
-                
-                    if (sourceCell.type === 'start') this.start_cell = targetCell;
-                    if (targetCell.type === 'start') this.start_cell = sourceCell;
-                    if (sourceCell.type === 'end') this.end_cell = targetCell;
-                    if (targetCell.type === 'end') this.end_cell = sourceCell;
-                    
-                    sourceCell.setType(targetCell.type);
-                    targetCell.setType(data.type);    
-                });
-                
-                col.push(cell)
-            }
-            this.arr.push(col)
-        }
-
-        const start_cell = this.arr[0][0]
-        const end_cell = this.arr[this.rows-1][this.cols-1]
-        start_cell.setType('start')
-        end_cell.setType('end')
-        this.start_cell = start_cell
-        this.end_cell = end_cell
 
         //speed slider
         const top_SpeedDelay = 800;
@@ -491,6 +494,84 @@ class Simulator extends HTMLElement {
         speed_control.appendChild(speed_label);
         speed_control.appendChild(speed_slider);
         panel.appendChild(speed_control);
+
+
+        // row col control group
+        const dimensionControls = document.createElement('div');
+        dimensionControls.classList.add('dimension-controls');
+
+        // Create a group wrapper for inputs and labels
+        const rowGroup = document.createElement('div');
+        rowGroup.classList.add('input-group');
+
+        const rowLabel = document.createElement('label');
+        rowLabel.textContent = 'Rows:';
+        rowLabel.htmlFor = 'row-input';
+
+        const rowInput = document.createElement('input');
+        rowInput.id = 'row-input';
+        rowInput.type = 'number';
+        rowInput.min = 10;
+        rowInput.max = 100;
+        rowInput.step = 1;
+        rowInput.value = this.rows;
+        rowInput.placeholder = 'Rows';
+        rowInput.classList.add('dimension-input', 'row-input');
+
+        rowInput.addEventListener('input', () => {
+            const val = parseInt(rowInput.value);
+            if (!isNaN(val)) {
+                this.rows = Math.min(100, Math.max(10, val));
+            }
+        });
+
+        rowGroup.appendChild(rowLabel);
+        rowGroup.appendChild(rowInput);
+
+        // Columns group
+        const colGroup = document.createElement('div');
+        colGroup.classList.add('input-group');
+
+        const colLabel = document.createElement('label');
+        colLabel.textContent = 'Columns:';
+        colLabel.htmlFor = 'col-input';
+
+        const colInput = document.createElement('input');
+        colInput.id = 'col-input';
+        colInput.type = 'number';
+        colInput.min = 10;
+        colInput.max = 100;
+        colInput.step = 1;
+        colInput.value = this.cols;
+        colInput.placeholder = 'Columns';
+        colInput.classList.add('dimension-input', 'col-input');
+
+        colInput.addEventListener('input', () => {
+            const val = parseInt(colInput.value);
+            if (!isNaN(val)) {
+                this.cols = Math.min(100, Math.max(10, val));
+            }
+        });
+
+        colGroup.appendChild(colLabel);
+        colGroup.appendChild(colInput);
+
+        // Build Grid Button
+        const buildButton = document.createElement('button');
+        buildButton.textContent = 'Build Grid';
+        buildButton.classList.add('build-grid-button');
+        buildButton.addEventListener('click', () => {
+            const grid = this.buildGrid();
+            this.insertBefore(grid, this.firstChild.nextSibling);
+        });
+
+        // Append all to main control container
+        dimensionControls.appendChild(rowGroup);
+        dimensionControls.appendChild(colGroup);
+        dimensionControls.appendChild(buildButton);
+
+        panel.appendChild(dimensionControls);
+
 
     }
 }

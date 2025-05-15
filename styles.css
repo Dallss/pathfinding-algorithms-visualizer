@@ -169,11 +169,32 @@ h2 {
     cursor: pointer;
   }
   
-  .speed-slider::-moz-range-thumb {
+.speed-slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
     background: #700580;
     border-radius: 50%;
     cursor: pointer;
-  }
-  
+}
+
+.dimension-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.dimension-input {
+    width: 100px;
+    padding: 4px;
+}
+
+.build-grid-button {
+    padding: 6px 12px;
+    margin-top: 0.5rem;
+}
+
