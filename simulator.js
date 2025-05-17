@@ -447,8 +447,8 @@ class Simulator extends HTMLElement {
         const simulate_button = document.createElement('button');
         const reset_button = document.createElement('button');
 
-        simulate_button.innerHTML = 'Start Simulation'
-        reset_button.innerHTML = 'reset'
+        simulate_button.innerHTML = 'Play'
+        reset_button.innerHTML = 'Reset'
 
         reset_button.classList.add('reset')
         simulate_button.classList.add('simulate-button')
@@ -457,13 +457,10 @@ class Simulator extends HTMLElement {
         simulate_button.onclick = () => this.simulate();
 
         panel.classList.add('panel');
-        panel.appendChild(simulate_button)
-        panel.appendChild(reset_button)
 
         const close_button = document.createElement('button');
-        close_button.innerHTML = 'Close';
+        close_button.innerHTML = 'X';
         close_button.classList.add('close-button');
-        close_button.style.marginLeft = '10px';
 
         close_button.onclick = () => {
             const parent = this.parentElement;
@@ -471,13 +468,13 @@ class Simulator extends HTMLElement {
             if (parent) parent.remove();
         };
 
-        panel.appendChild(close_button);
+        this.appendChild(close_button);
         this.appendChild(panel);
 
         //speed slider
         const top_SpeedDelay = 800;
-        const speed_control = document.createElement('div');
-        speed_control.classList.add('speed-control');
+        const simulation_control = document.createElement('div');
+        simulation_control.classList.add('simulation-control');
 
         const speed_label = document.createElement('label');
         speed_label.classList.add('speed-label');
@@ -494,10 +491,6 @@ class Simulator extends HTMLElement {
         speed_slider.addEventListener('input', () => {
             this.speed = parseInt(top_SpeedDelay - speed_slider.value);
         });
-
-        speed_control.appendChild(speed_label);
-        speed_control.appendChild(speed_slider);
-        panel.appendChild(speed_control);
 
 
         // row col control group
@@ -537,7 +530,7 @@ class Simulator extends HTMLElement {
         colGroup.classList.add('input-group');
 
         const colLabel = document.createElement('label');
-        colLabel.textContent = 'Columns:';
+        colLabel.textContent = 'Cols:';
         colLabel.htmlFor = 'col-input';
 
         const colInput = document.createElement('input');
@@ -545,8 +538,9 @@ class Simulator extends HTMLElement {
         colInput.type = 'number';
         colInput.min = 10;
         colInput.max = 100;
-        colInput.step = 1;
+        colInput.step = 5;
         colInput.value = this.cols;
+
         colInput.placeholder = 'Columns';
         colInput.classList.add('dimension-input', 'col-input');
 
@@ -560,20 +554,18 @@ class Simulator extends HTMLElement {
         colGroup.appendChild(colLabel);
         colGroup.appendChild(colInput);
 
-        // Build Grid Button
-        const buildButton = document.createElement('button');
-        buildButton.textContent = 'Build Grid';
-        buildButton.classList.add('build-grid-button');
-        buildButton.addEventListener('click', () => {
-            const grid = this.buildGrid();
-            this.insertBefore(grid, this.firstChild.nextSibling);
-        });
+        
+        simulation_control.appendChild(speed_label);
+        simulation_control.appendChild(speed_slider);
+        simulation_control.appendChild(simulate_button)
 
         // Append all to main control container
         dimensionControls.appendChild(rowGroup);
         dimensionControls.appendChild(colGroup);
-        dimensionControls.appendChild(buildButton);
+        dimensionControls.appendChild(reset_button);
 
+
+        panel.appendChild(simulation_control);
         panel.appendChild(dimensionControls);
 
 
