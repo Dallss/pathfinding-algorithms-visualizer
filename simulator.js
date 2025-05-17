@@ -32,21 +32,25 @@ Array.prototype.get2DNeighborsWithWeight = function(current_row, current_col) {
     ];
     
     const neighbors = [];
-
-    for (const [dRow, dCol, weight] of directions) {
-        const newRow = current_row + dRow, newCol = current_col + dCol;
+    
+    for (const [dRow, dCol, baseWeight] of directions) {
+        const newRow = current_row + dRow;
+        const newCol = current_col + dCol;
         if (
             newRow >= 0 && newRow < this.length &&
             newCol >= 0 && newCol < this[0].length
         ) {
             const cell = this[newRow][newCol];
             if (cell.type !== 'wall') {
-                neighbors.push({ cell, weight });
+                // Total weight is base direction cost + cell's custom weight
+                const totalWeight = baseWeight + cell.weight;
+                neighbors.push({ cell, weight: totalWeight });
             }
         }
     }
-
+    
     return neighbors;
+    
 };
 
 
@@ -64,6 +68,7 @@ class Simulator extends HTMLElement {
         this.grid = null
         this.start_cell = null
         this.end_cell = null 
+        this.cell_click_handler = 'wall'
     }
     connectedCallback() {
         this.algo = this.getAttribute('algo') || 'bfs';
@@ -138,16 +143,17 @@ class Simulator extends HTMLElement {
         }
     };
     static PriorityQueue = class {
-        constructor(attr) {
+        constructor(key = 'dist') {
             this.items = [];
-            this.attr = attr || 'dist'
+            this.key = key;
         }
+    
     
         push(node) {
             node.cell.style.backgroundColor = 'gray';
             this.items.push(node);
 
-            this.items.sort((a, b) => a[this.attr] - b[this.attr]);
+            this.items.sort((a, b) => a[this.key] - b[this.key]);
         }
     
         pop() {
@@ -186,6 +192,7 @@ class Simulator extends HTMLElement {
                 cell.type = 'empty'
                 cell.row = r;
                 cell.col = c;
+                cell.weight = 0;
                 cell.isVisited = false;
                 cell.setType = function (type = 'empty') {
                     const types = ['empty', 'start', 'end', 'wall'];
@@ -203,17 +210,35 @@ class Simulator extends HTMLElement {
                         return
                     }
                     cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
+                    cell.weight = 0;
+                    cell.style.backgroundColor = 'white'; // not good. TODO: make cellweight adjustments handled by cell.someFunction()
                 }
-                cell.addEventListener('click', togglewall);
+                const addWeight = () => {
+                    if (cell.type === 'empty') {
+                        cell.weight += 1;
+                
+                        const maxWeight = 5; // Adjust as needed TODO: Add this to settings
+                        const factor = Math.min(cell.weight / maxWeight, 1); 
+
+                        const start = 255;
+                        const end = 47;
+                        const value = Math.round(start - (start - end) * factor);
+
+                        cell.style.backgroundColor = `rgb(${value}, ${value}, ${value})`;
+                    }
+                };
+                cell.addEventListener('click', () => {
+                    this.cell_click_handler == 'wall' ? togglewall() : addWeight();
+                });
                 let isMouseDown = false;
                 document.addEventListener('mousedown', () => isMouseDown = true);
                 document.addEventListener('mouseup', () => isMouseDown = false);
+
                 cell.addEventListener('mouseover', () => {
                     if (isMouseDown) {
-                        togglewall();
+                        this.cell_click_handler == 'wall' ? togglewall() : addWeight();
                     }
                 });
-
 
                 cell.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', JSON.stringify({ row: cell.row, col: cell.col, type: cell.type }));
@@ -342,6 +367,7 @@ class Simulator extends HTMLElement {
                     }
                     if(!visited_cells.has(child_node.cell)){
                         visited_cells.add(child_node.cell)
+                        console.log(child_node.cell.weight)
                         q.push(child_node)
                     }
                 }
@@ -550,13 +576,25 @@ class Simulator extends HTMLElement {
             }
         });
 
+        // weight/wall button
+        const weight_button = document.createElement('button')
+        weight_button.innerHTML = 'add weight'
+        
+        weight_button.addEventListener('click', () => {
+            this.cell_click_handler = this.cell_click_handler === 'wall' ? 'weight' : 'wall';
+            weight_button.innerHTML = weight_button.innerHTML === 'add walls' ? 'add weight': 'add walls';
+            weight_button.classList.toggle('add_walls_state');
+        });
+          
+
         colGroup.appendChild(colLabel);
         colGroup.appendChild(colInput);
 
         
         simulation_control.appendChild(speed_label);
         simulation_control.appendChild(speed_slider);
-        simulation_control.appendChild(simulate_button)
+        simulation_control.appendChild(weight_button);
+        simulation_control.appendChild(simulate_button);
 
         // Append all to main control container
         dimensionControls.appendChild(rowGroup);

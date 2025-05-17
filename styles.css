@@ -88,7 +88,7 @@ path-finding-simulator {
 .cell {
     width: 38px;
     height: 38px;
-    background-color: #eee;
+    background-color: #ffffff;
     border: 1px solid #ccc;
     display: flex;
     align-items: center;
@@ -98,7 +98,12 @@ path-finding-simulator {
 }
 
 .wall {
+    background-color: #736373 !important;
+}
+
+.add_walls_state {
     background-color: #736373;
+    color: white;
 }
 
 .end {
