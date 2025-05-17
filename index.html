@@ -35,11 +35,12 @@
 
                     selected_simulator = simulator;
                     simulator.addEventListener('click', () => {
-                        if (selected_simulator && selected_simulator !== simulator) {
+                        if (selected_simulator.parentElement && selected_simulator !== simulator) {
                             selected_simulator.parentElement.classList.remove('selected-simulator');
                         }
 
-                        simulator.parentElement.classList.add('selected-simulator');
+                        if(simulator.parentElement)
+                            simulator.parentElement.classList.add('selected-simulator');
                         selected_simulator = simulator;
                     });
 
