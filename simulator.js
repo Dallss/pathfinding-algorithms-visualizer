@@ -176,7 +176,6 @@ class Simulator extends HTMLElement {
         grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, 40px)`;
         grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, 40px)`;
 
-        console.log(this.rows);
         for (let r = 0; r < this.rows; r++) {
             const col = []
             for (let c = 0; c < this.cols; c++) {

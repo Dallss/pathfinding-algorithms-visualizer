@@ -27,9 +27,23 @@
                 import './simulator.js';
                 import './draggable.js'
 
+                let selected_simulator = null;
+
                 function newSim(attributes) {
                     const draggable = document.createElement('draggable-element');
                     const simulator = document.createElement('path-finding-simulator');
+
+                    selected_simulator = simulator;
+                    simulator.addEventListener('click', () => {
+                        if (selected_simulator && selected_simulator !== simulator) {
+                            selected_simulator.parentElement.classList.remove('selected-simulator');
+                        }
+
+                        simulator.parentElement.classList.add('selected-simulator');
+                        selected_simulator = simulator;
+                    });
+
+
                     for (const [key, value] of Object.entries(attributes)) {
                         simulator.setAttribute(key, value);
                     }

@@ -31,7 +31,6 @@ class Draggable extends HTMLElement {
     }
     
     onMouseDown(e) {
-        console.log(e.target)
         const interactiveTags = ['button', 'a', 'input', 'select', 'textarea', 'label'];
         const isNotDraggable = e.target.isNotDraggable || false;
 
