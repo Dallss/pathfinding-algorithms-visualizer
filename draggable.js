@@ -31,28 +31,32 @@ class Draggable extends HTMLElement {
     }
     
     onMouseDown(e) {
-        const interactiveTags = ['button', 'a', 'input', 'select', 'textarea', 'label'];
-        const isNotDraggable = e.target.isNotDraggable || false;
-
-        // Check if the target or its ancestor has an onclick handler
-        const isInteractive = e.target.closest(interactiveTags.join(','));
-
-        // If it's draggable, interactive, or has a click event, don't start dragging
-        if (isInteractive || isNotDraggable || e.target.closest('[draggable="true"]')) return;
-
-        this.isDragging = true;
-        this.offsetX = e.clientX - this.offsetLeft;
-        this.offsetY = e.clientY - this.offsetTop;
-        this.style.zIndex = 1000;
+      const interactiveTags = ['button', 'a', 'input', 'select', 'textarea', 'label'];
+      const isNotDraggable = e.target.isNotDraggable || false;
+      const isInteractive = e.target.closest(interactiveTags.join(','));
+    
+      // Prevent dragging if the element is interactive or explicitly marked non-draggable
+      if (isInteractive || isNotDraggable || e.target.closest('[draggable="true"]')) return;
+    
+      this.isDragging = true;
+    
+      // Use getBoundingClientRect for zoom-safe offset calculation
+      const rect = this.getBoundingClientRect();
+      this.offsetX = e.clientX - rect.left;
+      this.offsetY = e.clientY - rect.top;
+    
+      this.style.position = 'absolute'; // ensure draggable
+      this.style.zIndex = 1000;
+      e.stopPropagation();
     }
-  
+    
     onMouseMove(e) {
       if (this.isDragging) {
         this.style.left = `${e.clientX - this.offsetX}px`;
         this.style.top = `${e.clientY - this.offsetY}px`;
       }
     }
-  
+    
     onMouseUp() {
       this.isDragging = false;
     }

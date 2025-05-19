@@ -3,7 +3,7 @@
 body {
     display: flex;
     flex-wrap: wrap;
-    background-color: rgba(240, 235, 163, 0.686);
+    background-color: rgba(234, 233, 220, 0.686);
 }
 
 .fab-container {
@@ -248,3 +248,35 @@ h2 {
     z-index: 5000 !important;
 
 }
+
+
+
+html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #viewport {
+    width: 100vw;
+    height: 100vh;
+    background: #f0f0f0;
+    cursor: grab;
+    position: relative;
+  }
+
+  #world {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+    width: 5000px;
+    height: 5000px;
+    background-image: radial-gradient(circle, #999 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .component {
+    position: absolute;
+  }
