@@ -64,7 +64,7 @@ class Simulator extends HTMLElement {
         this.arr = [];
 
         this.simulation_state = 'creative'
-        this.isMouseDown = false;
+        this.toggle_box_state = false;
         this.grid = null
         this.start_cell = null
         this.end_cell = null 
@@ -230,12 +230,12 @@ class Simulator extends HTMLElement {
                 cell.addEventListener('click', () => {
                     this.cell_click_handler == 'wall' ? togglewall() : addWeight();
                 });
-                let isMouseDown = false;
-                document.addEventListener('mousedown', () => isMouseDown = true);
-                document.addEventListener('mouseup', () => isMouseDown = false);
+                        
+                cell.addEventListener('mousedown', (e) => {this.toggle_box_state = true; e.stopPropagation();});
+                window.addEventListener('mouseup', (e) => {this.toggle_box_state = false});
 
                 cell.addEventListener('mouseover', () => {
-                    if (isMouseDown) {
+                    if (this.toggle_box_state) {
                         this.cell_click_handler == 'wall' ? togglewall() : addWeight();
                     }
                 });

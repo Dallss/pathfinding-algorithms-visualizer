@@ -19,10 +19,6 @@
       </div>                
     </div>
     <div id="world">
-      <draggable-element>
-        <path-finding-simulator algo="djk" title="djkhaled">
-        </path-finding-simulator>
-      </draggable-element>
     </div>
   </div>
 
@@ -106,7 +102,6 @@
         isDragging = true;
         offset.x = e.offsetX;
         offset.y = e.offsetY;
-        e.stopPropagation();
       });
 
       window.addEventListener('mousemove', (e) => {
@@ -166,6 +161,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Add a default simulator on load
+        newSim({ algo: 'djk', title: 'djkhaled' });
+        
         const fabButton = document.querySelector('.fab-button');
         const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
         fabButton.addEventListener('click', toggleDropdown);
