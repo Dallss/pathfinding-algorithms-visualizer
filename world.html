@@ -28,17 +28,18 @@
 
     const viewport = document.getElementById('viewport');
     const world = document.getElementById('world');
+    viewport.style.border = '10px solid blue';
 
-    let pan = { x: 0, y: 0 };
-    let scale = 1;
-    let isPanning = false;
-    let start = { x: 0, y: 0 };
+    window.pan = { x: 0, y: 0 };
+    window.scale = 1;
+    window.isPanning = false;
+    window.start = { x: 0, y: 0 };
     let draggable_elements = [];
 
     function clampPan() {
       const worldRect = {
-        width: world.offsetWidth * scale,
-        height: world.offsetHeight * scale,
+        width: world.offsetWidth * window.scale,
+        height: world.offsetHeight * window.scale,
       };
       const viewportRect = {
         width: viewport.clientWidth,
@@ -48,31 +49,31 @@
       const minX = viewportRect.width - worldRect.width;
       const minY = viewportRect.height - worldRect.height;
 
-      pan.x = Math.min(0, Math.max(minX, pan.x));
-      pan.y = Math.min(0, Math.max(minY, pan.y));
+      window.pan.x = Math.min(0, Math.max(minX, window.pan.x));
+      window.pan.y = Math.min(0, Math.max(minY, window.pan.y));
     }
 
     function updateTransform() {
       clampPan();
-      world.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
+      world.style.transform = `translate(${window.pan.x}px, ${window.pan.y}px) scale(${window.scale})`;
     }
 
     viewport.addEventListener('mousedown', (e) => {
       if (e.target.closest('.draggable-element')) return;
-      isPanning = true;
-      start = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+      window.isPanning = true;
+      start = { x: e.clientX - window.pan.x, y: e.clientY - window.pan.y };
       viewport.style.cursor = 'grabbing';
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!isPanning) return;
-      pan.x = e.clientX - start.x;
-      pan.y = e.clientY - start.y;
+      if (!window.isPanning) return;
+      window.pan.x = e.clientX - start.x;
+      window.pan.y = e.clientY - start.y;
       updateTransform();
     });
 
     window.addEventListener('mouseup', () => {
-      isPanning = false;
+      window.isPanning = false;
       viewport.style.cursor = 'grab';
     });
 
@@ -80,41 +81,17 @@
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       const delta = -e.deltaY * 0.001;
-      const newScale = Math.min(Math.max(0.1, scale + delta), 5);
+      const newScale = Math.min(Math.max(0.1, window.scale + delta), 5);
 
       const rect = viewport.getBoundingClientRect();
-      const worldX = (e.clientX - rect.left - pan.x) / scale;
-      const worldY = (e.clientY - rect.top - pan.y) / scale;
+      const worldX = (e.clientX - rect.left - window.pan.x) / window.scale;
+      const worldY = (e.clientY - rect.top - window.pan.y) / window.scale;
 
-      pan.x -= worldX * (newScale - scale);
-      pan.y -= worldY * (newScale - scale);
-      scale = newScale;
+      window.pan.x -= worldX * (newScale - window.scale);
+      window.pan.y -= worldY * (newScale - window.scale);
+      window.scale = newScale;
 
       updateTransform();
-    });
-
-    // Draggable components // removable
-    document.querySelectorAll('draggable-element').forEach(el => {
-      let isDragging = false;
-      let offset = { x: 0, y: 0 };
-
-      el.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offset.x = e.offsetX;
-        offset.y = e.offsetY;
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const x = (e.clientX - pan.x) / scale - offset.x;
-        const y = (e.clientY - pan.y) / scale - offset.y;
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-      });
-
-      window.addEventListener('mouseup', () => {
-        isDragging = false;
-      });
     });
 
     // addbutton
@@ -124,15 +101,6 @@
         const draggable = document.createElement('draggable-element');
         const simulator = document.createElement('path-finding-simulator');
         const world = document.getElementById('world');
-
-        draggable.onMouseMove = function (e) {
-          let offset = { x: 0, y: 0 };
-          if (!draggable.isDragging) return;
-          const x = (e.clientX - pan.x) / scale - draggable.offsetX;
-          const y = (e.clientY - pan.y) / scale - draggable.offsetY;
-          draggable.style.left = `${x}px`;
-          draggable.style.top = `${y}px`;
-        };
 
         console.log(world);
         selected_simulator = simulator;

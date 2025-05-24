@@ -19,7 +19,7 @@ class Draggable extends HTMLElement {
       this.style.padding = '2px';
       this.style.position = 'absolute'; 
         
-      this.addEventListener('mousedown', this.onMouseDown);
+      this.addEventListener('mousedown', (e)=>{this.onMouseDown(e); e.stopPropagation();});
       window.addEventListener('mousemove', this.onMouseMove);
       window.addEventListener('mouseup', this.onMouseUp);
     }
@@ -51,10 +51,13 @@ class Draggable extends HTMLElement {
     }
     
     onMouseMove(e) {
-      if (this.isDragging) {
-        this.style.left = `${500}px`;
-        this.style.top = `${500}px`;
-      }
+      let offset = { x: 0, y: 0 };
+      if (!this.isDragging) return;
+  
+      const x = (e.clientX - pan.x) / window.scale - this.offsetX;
+      const y = (e.clientY - pan.y) / window.scale - this.offsetY;
+      this.style.left = `${x}px`;
+      this.style.top = `${y}px`;
     }
     
     
