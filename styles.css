@@ -167,6 +167,7 @@ h2 {
     margin-bottom: 5px;
     margin-top: 5px;
     font-family:'Courier New', Courier, monospace;
+    user-select: none;
 }
 .queued {
     background-color: yellow !important;
