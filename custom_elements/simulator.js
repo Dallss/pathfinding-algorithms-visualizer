@@ -73,7 +73,7 @@ class Simulator extends HTMLElement {
             colors: { push: 'yellow', pop: 'gray', weighted: true},
             pathColor: 'green',
             pathOpacity: 1,
-            visitedOpacity: 0.6
+            visitedOpacity: 0.4
         }
     }
     connectedCallback() {
@@ -166,8 +166,10 @@ class Simulator extends HTMLElement {
 
             this.items.sort((a,b) => a[this.key]-b[this.key])
             .forEach((item,i,arr) => {
-              item.cell.style.backgroundColor = this.color;
-              if (this.colors.weighted) item.cell.style.opacity = (1 - i / arr.length).toFixed(2);
+              if(item.cell.type !='start'){
+                item.cell.style.backgroundColor = this.color;
+                if (this.colors.weighted) item.cell.style.opacity = (1 - i / arr.length).toFixed(2);
+              }
             });
           
         }
@@ -177,6 +179,9 @@ class Simulator extends HTMLElement {
             const node = this.items.shift();
 
             if (node.cell.type != 'start') node.cell.style.backgroundColor = this.colors.pop;
+
+            // Remove weight classes when popped
+            node.cell.classList.remove('weight-1', 'weight-2', 'weight-3');
 
             node.cell.style.opacity = '1';
             return node;
@@ -217,11 +222,17 @@ class Simulator extends HTMLElement {
                     types.forEach(t => this.classList.remove(t));
                     this.classList.add(type);
                     this.type = type;
-                
+
+                    // Remove weight classes if setting to wall
+                    if (type === 'wall') {
+                        this.classList.remove('weight-1', 'weight-2', 'weight-3');
+                        this.weight = 0; // Also reset weight
+                    }
+
                     // Make only start/end draggable
                     this.setAttribute('draggable', type === 'start' || type === 'end');
                 };
-                  
+                cell.classList.add('empty');
                 // for toggling walls
                 const togglewall = () => {
                     if(cell.type == 'start' || cell.type == 'end'){
@@ -229,22 +240,30 @@ class Simulator extends HTMLElement {
                     }
                     cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
                     cell.weight = 0;
-                    // cell.style.backgroundColor = 'white'; // not good. TODO: make cellweight adjustments handled by cell.someFunction()
                 }
                 const addWeight = () => {
                     if (cell.type === 'empty') {
-                        cell.weight += 1;
+                        if (cell.weight < 0.8) cell.weight += 0.3;  // increase by 0.3 to fit 3 steps: 0.2 → 0.5 → 0.8
                 
-                        const maxWeight = 5; // Adjust as needed TODO: Add this to settings
-                        const factor = Math.min(cell.weight / maxWeight, 1); 
-
-                        const start = 255;
-                        const end = 47;
-                        const value = Math.round(start - (start - end) * factor);
-
-                        cell.style.backgroundColor = `rgb(${value}, ${value}, ${value})`;
+                        // Clamp to 0.8 max and fix floating-point rounding
+                        cell.weight = Math.min(0.8, Math.round(cell.weight * 10) / 10);
+                
+                        // Remove existing weight classes
+                        cell.classList.remove('weight-1', 'weight-2', 'weight-3');
+                
+                        // Map weight to class by closest step
+                        let weightClass = '';
+                        if (cell.weight <= 0.3) weightClass = 'weight-1';
+                        else if (cell.weight <= 0.65) weightClass = 'weight-2';
+                        else weightClass = 'weight-3';
+                
+                        if (weightClass) {
+                            cell.classList.add(weightClass);
+                        }
                     }
                 };
+                
+                
                 cell.addEventListener('click', () => {
                     this.cell_click_handler == 'wall' ? togglewall() : addWeight();
                 });
@@ -381,7 +400,8 @@ class Simulator extends HTMLElement {
                     console.log(out)
                     return;
                 }
-                current_node.cell.style.opacity = this.settings.visitedOpacity;
+                if( current_node.cell.type!='start') current_node.cell.style.opacity = this.settings.visitedOpacity;
+
                 const children = this.arr.get2DNeighbors(current_node.cell.row, current_node.cell.col, {withWeight: true, allowDiagonals: this.settings.allowDiagonals});
                 for(let child_node of children){ 
                     if ( child_node.dist == undefined ) {
@@ -435,7 +455,7 @@ class Simulator extends HTMLElement {
                     console.log(out)
                     return
                 }
-                current_node.cell.style.opacity = this.settings.visitedOpacity;
+                if( current_node.cell.type!='start') current_node.cell.style.opacity = this.settings.visitedOpacity;
                 const children = this.arr.get2DNeighbors(current_node.cell.row, current_node.cell.col, {withWeight: true, allowDiagonals: this.settings.allowDiagonals});
                 for(let child_node of children){ 
                     if ( child_node.dist == undefined ) {

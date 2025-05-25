@@ -54,7 +54,7 @@ body {
 path-finding-simulator {
     display: flex;
     flex-direction: column;
-    border: 5px solid rgb(125, 51, 140);
+    border: 5px solid rgba(125, 51, 140, 0.653);
     background-color: #641160a0;
     padding: 5px;
     border-radius: 8px;      
@@ -91,7 +91,6 @@ path-finding-simulator {
 .cell {
     width: 95%;
     height: 95%;
-    background-color: #ffffff46;
     border: 1px solid #0000006a;
     display: flex;
     align-items: center;
@@ -100,8 +99,10 @@ path-finding-simulator {
     user-select: none;
 }
 
-.wall {
-    background-color: #000000d2 !important;
+.wall.wall {
+    background-color: #000000b2 !important;
+    box-shadow: inset 0 0 0 3px black !important;
+
 }
 
 .add_walls_state {
@@ -118,9 +119,22 @@ path-finding-simulator {
     background-color: rgb(212, 56, 18);
     border-radius: 14px;
 }
+.weight-1 {
+    background-color: #00000030 !important; /* very light black, ~10% opacity */
+  }
+  
+  .weight-2 {
+    background-color: #00000070 !important; /* medium black, ~44% opacity */
+  }
+  
+  .weight-3 {
+    background-color: #00000083 !important; /* strong black, ~70% opacity */
+  }
+  
+  
 
 .empty {
-    background-color: #ffffff46;
+    background-color: #00000018;
 }
 
 button {
