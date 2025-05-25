@@ -229,7 +229,7 @@ class Simulator extends HTMLElement {
                     }
                     cell.type == 'empty' ? cell.setType('wall') : cell.setType('empty')
                     cell.weight = 0;
-                    cell.style.backgroundColor = 'white'; // not good. TODO: make cellweight adjustments handled by cell.someFunction()
+                    // cell.style.backgroundColor = 'white'; // not good. TODO: make cellweight adjustments handled by cell.someFunction()
                 }
                 const addWeight = () => {
                     if (cell.type === 'empty') {

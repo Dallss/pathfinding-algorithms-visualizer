@@ -120,7 +120,7 @@ path-finding-simulator {
 }
 
 .empty {
-    /* placeholder for styling empty cells */
+    background-color: #ffffff46;
 }
 
 button {
