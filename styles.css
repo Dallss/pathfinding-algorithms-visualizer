@@ -53,7 +53,7 @@ body {
 path-finding-simulator {
     display: flex;
     flex-direction: column;
-    border: 5px solid rgba(125, 51, 140, 0.653);
+    border: 2px solid rgba(125, 51, 140, 0.653);
     background-color: #641160a0;
     padding: 5px;
     border-radius: 8px;      
@@ -92,7 +92,7 @@ path-finding-simulator {
 .cell {
     width: 95%;
     height: 95%;
-    border: 1px solid #0000006a;
+    border: 0.2px solid #000000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -202,7 +202,7 @@ h2 {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
-    background: #700580;
+    background: #ffffff;
     border-radius: 50%;
     cursor: pointer;
 }
@@ -210,7 +210,7 @@ h2 {
 .speed-slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
-    background: #700580;
+    background: #ffffff;
     border-radius: 50%;
     cursor: pointer;
 }
@@ -246,17 +246,22 @@ h2 {
     position: absolute;
     left: 0;
     top: 0;
-    margin: -1px;
-    background-color: rgba(171, 3, 3, 0.843);
+    margin: -3px;
+    background-color: rgba(0, 0, 0, 0.491);
     color: white;
     border: 1.5px solid rgb(102, 102, 102);
     border-radius: 100px;
-    height: 25px;
-    width: 25px;
+    height: 16px;
+    width: 16px;
     aspect-ratio: 1/1;
     font-size: 10px;
     padding: 0;
     text-align: center;
+    opacity: 0.6;
+}
+.close-button:hover {
+    opacity: 1;
+    transform: scale(120%);
 }
 
 
