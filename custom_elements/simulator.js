@@ -73,6 +73,7 @@ class Simulator extends HTMLElement {
         this.settings = {
             cellSize: 28
         }
+        this.timeouts = [];
     }
     connectedCallback() {
         this.algo = this.getAttribute('algo') || 'bfs';
@@ -84,8 +85,12 @@ class Simulator extends HTMLElement {
         this.render();
     }
     reset() {
+        // Clear all pending timeouts
+        if (this.timeouts && this.timeouts.length) {
+            this.timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+            this.timeouts = [];
+        }
         this.arr = [];
-
         this.simulation_state = 'creative'
         this.start_cell = null
         this.end_cell = null 
@@ -236,7 +241,7 @@ class Simulator extends HTMLElement {
                 });
                         
                 cell.addEventListener('mousedown', (e) => {this.toggle_box_state = true; e.stopPropagation();});
-                window.addEventListener('mouseup', (e) => {this.toggle_box_state = false});
+                window.addEventListener('mouseup', (e) => {this.toggle_box_state = false;});
 
                 cell.addEventListener('mouseover', () => {
                     if (this.toggle_box_state) {
@@ -249,7 +254,7 @@ class Simulator extends HTMLElement {
                 });
                 
                 cell.addEventListener('dragover', (e) => {
-                    e.preventDefault(); // Allow drop
+                    e.preventDefault(); // Allow drop                      
                 });
                 
                 cell.addEventListener('drop', (e) => {
@@ -269,6 +274,14 @@ class Simulator extends HTMLElement {
                     
                     sourceCell.setType(targetCell.type);
                     targetCell.setType(data.type);    
+
+                    const mouseUpEvent = new MouseEvent('mouseup', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                    });
+                      
+                    window.dispatchEvent(mouseUpEvent); // bandage fix to fire mouse up on drop (for custonm logic)
                 });
                 
                 col.push(cell)
@@ -308,7 +321,8 @@ class Simulator extends HTMLElement {
                     return
                 }
                 current_cell = queue.pop();
-                setTimeout(animate,speed);
+                const timeoutId = setTimeout(animate,speed);
+                this.timeouts.push(timeoutId);
             }
             animate();
         }
@@ -332,7 +346,8 @@ class Simulator extends HTMLElement {
                     return
                 }
                 current_cell = queue.pop();
-                setTimeout(animate,speed);
+                const timeoutId = setTimeout(animate,speed);
+                this.timeouts.push(timeoutId);
             }
             animate();
         }
@@ -382,7 +397,8 @@ class Simulator extends HTMLElement {
                 }
 
                 current_node = q.pop();
-                setTimeout(animate,speed);
+                const timeoutId = setTimeout(animate,speed);
+                this.timeouts.push(timeoutId);
             }
             animate();
         }
@@ -435,7 +451,8 @@ class Simulator extends HTMLElement {
                 }
 
                 current_node = q.pop();
-                setTimeout(animate,speed);
+                const timeoutId = setTimeout(animate,speed);
+                this.timeouts.push(timeoutId);
             }
             animate();
         }
