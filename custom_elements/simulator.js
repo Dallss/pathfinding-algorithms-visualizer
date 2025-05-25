@@ -363,7 +363,7 @@ class Simulator extends HTMLElement {
                     console.log('congrats')
                     return
                 }
-                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
+                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col, {allowDiagonals:true});
                 for(let n of neighbors){
                     if (!n.isVisited){
                         queue.push(n)

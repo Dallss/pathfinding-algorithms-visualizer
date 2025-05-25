@@ -20,7 +20,8 @@
     </div>
     <div id="world">
       <div class="world-header">
-        Click upper-right button to Start!
+       <h4>Click upper-right button to Start!</h4> 
+       <p>Press reset after changing rows or cols</p> 
       </div>
     </div>
   </div>
@@ -133,6 +134,12 @@
         // Place draggable so its top-left is at the center (adjust for its own size after render if needed)
         draggable.style.left = `${worldX}px`;
         draggable.style.top = `${worldY}px`;
+
+        // Remove world header when a new simulator is created
+        const worldHeader = document.querySelector('.world-header');
+        if (worldHeader) {
+            worldHeader.remove();
+        }
     }
 
     function toggleDropdown() {
@@ -148,7 +155,7 @@
         window.pan.y = (viewportRect.height - world.offsetHeight) / 2;
         updateTransform();
         // Add a default simulator on load
-        newSim({ algo: 'djk', title: 'Guess the algo' });
+        // newSim({ algo: 'djk', title: 'Guess the algo' });
         
         const fabButton = document.querySelector('.fab-button');
         const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
