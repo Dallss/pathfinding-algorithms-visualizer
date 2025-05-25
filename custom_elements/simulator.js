@@ -1,57 +1,53 @@
-Array.prototype.get2DNeighbors = function(current_row, current_col) {
-    const directions = [
-        [-1, -1], [-1, 0], [-1, 1],
-        [0, 1], [1, 1], [1, 0], [1, -1],
-        [0, -1]
+Array.prototype.get2DNeighbors = function(current_row, current_col, options = {}) {
+    const {
+        withWeight = false,
+        allowDiagonals = true
+    } = options;
+
+    const cardinalDirections = [
+        [-1, 0, 1],  // up
+        [0, 1, 1],   // right
+        [1, 0, 1],   // down
+        [0, -1, 1]   // left
     ];
+
+    const diagonalDirections = [
+        [-1, -1, 1.4], // up-left
+        [-1, 1, 1.4],  // up-right
+        [1, 1, 1.4],   // down-right
+        [1, -1, 1.4]   // down-left
+    ];
+
+    const directions = allowDiagonals
+        ? cardinalDirections.concat(diagonalDirections)
+        : cardinalDirections;
 
     const neighbors = [];
 
-    directions.forEach(([dRow, dCol]) => {
-        const newRow = current_row + dRow;
-        const newCol = current_col + dCol;
-
-        if (
-            newRow >= 0 && newRow < this.length &&
-            newCol >= 0 && newCol < this[0].length
-        ) {
-            const cell = this[newRow][newCol];
-            if (cell.type !== 'wall') {
-                neighbors.push(cell);
-            }
-        }
-    });
-
-    return neighbors;
-};
-
-Array.prototype.get2DNeighborsWithWeight = function(current_row, current_col) {
-    const directions = [
-        [0, -1, 1], [1, 0, 1], [0, 1, 1], [-1, 0, 1],
-        [1, -1, 1.4], [1, 1, 1.4], [-1, 1, 1.4], [-1, -1, 1.4]
-    ];
-    
-    const neighbors = [];
-    
     for (const [dRow, dCol, baseWeight] of directions) {
         const newRow = current_row + dRow;
         const newCol = current_col + dCol;
+
         if (
             newRow >= 0 && newRow < this.length &&
             newCol >= 0 && newCol < this[0].length
         ) {
             const cell = this[newRow][newCol];
             if (cell.type !== 'wall') {
-                // Total weight is base direction cost + cell's custom weight
-                const totalWeight = baseWeight + cell.weight;
-                neighbors.push({ cell, weight: totalWeight });
+                if (withWeight) {
+                    const totalWeight = baseWeight + (cell.weight || 0);
+                    neighbors.push({ cell, weight: totalWeight });
+                } else {
+                    neighbors.push(cell);
+                }
             }
         }
     }
-    
+
     return neighbors;
-    
 };
+
+
 
 
 class Simulator extends HTMLElement {
@@ -70,10 +66,15 @@ class Simulator extends HTMLElement {
         this.end_cell = null 
         this.cell_click_handler = 'wall'
 
-        this.settings = {
-            cellSize: 28
-        }
         this.timeouts = [];
+        this.settings = {
+            allowDiagonals: true,
+            cellSize: 28,
+            colors: { push: 'yellow', pop: 'gray', weighted: true},
+            pathColor: 'green',
+            pathOpacity: 1,
+            visitedOpacity: 0.6
+        }
     }
     connectedCallback() {
         this.algo = this.getAttribute('algo') || 'bfs';
@@ -152,24 +153,32 @@ class Simulator extends HTMLElement {
         }
     };
     static PriorityQueue = class {
-        constructor(key = 'dist') {
+        constructor({ key = 'dist', colors = { push: 'yellow', pop: 'gray', weighted: true }}) {
             this.items = [];
             this.key = key;
-        }
-    
+            this.colors = colors;
+        }        
     
         push(node) {
-            node.cell.style.backgroundColor = 'gray';
+            if (node.cell.type != 'start') node.cell.style.backgroundColor = this.colors.push;
+            
             this.items.push(node);
 
-            this.items.sort((a, b) => a[this.key] - b[this.key]);
+            this.items.sort((a,b) => a[this.key]-b[this.key])
+            .forEach((item,i,arr) => {
+              item.cell.style.backgroundColor = this.color;
+              if (this.colors.weighted) item.cell.style.opacity = (1 - i / arr.length).toFixed(2);
+            });
+          
         }
     
         pop() {
             if (this.isEmpty()) return null;
-    
             const node = this.items.shift();
-            node.cell.style.backgroundColor = 'yellow';
+
+            if (node.cell.type != 'start') node.cell.style.backgroundColor = this.colors.pop;
+
+            node.cell.style.opacity = '1';
             return node;
         }
     
@@ -352,25 +361,28 @@ class Simulator extends HTMLElement {
             animate();
         }
         const djk = (speed=20) => {
-            const q = new Simulator.PriorityQueue();
+            const q = new Simulator.PriorityQueue({colors: this.settings.colors});
             const visited_cells = new Set();
 
             let current_node = { cell: this.start_cell, dist: 0, prev: null }
             q.push(current_node)
 
             const animate = () => {
-                if(current_node.cell === this.end_cell){
+                if(current_node.cell === this.end_cell){ // found
                     console.log('congrats')
                     const out = []
-
+                    
                     while(current_node.prev){
-                        current_node.cell.style.backgroundColor = 'green'
+                        current_node.cell.style.opacity = this.settings.pathOpacity; // path opacity
+                        current_node.cell.style.backgroundColor = this.settings.pathColor;
                         out.push(current_node.cell)
                         current_node = current_node.prev
                     }
                     console.log(out)
+                    return;
                 }
-                const children = this.arr.get2DNeighborsWithWeight(current_node.cell.row, current_node.cell.col);
+                current_node.cell.style.opacity = this.settings.visitedOpacity;
+                const children = this.arr.get2DNeighbors(current_node.cell.row, current_node.cell.col, {withWeight: true, allowDiagonals: this.settings.allowDiagonals});
                 for(let child_node of children){ 
                     if ( child_node.dist == undefined ) {
                         child_node.dist = current_node.dist + child_node.weight;
@@ -403,7 +415,7 @@ class Simulator extends HTMLElement {
             animate();
         }
         const astar = (speed=20) => {
-            const q = new Simulator.PriorityQueue('mdist');
+            const q = new Simulator.PriorityQueue({key: 'mdist', colors: this.settings.colors});
             const visited_cells = new Set();
 
             let current_node = { cell: this.start_cell, dist: 0, prev: null }
@@ -415,14 +427,16 @@ class Simulator extends HTMLElement {
                     const out = []
 
                     while(current_node.prev){
-                        current_node.cell.style.backgroundColor = 'green'
+                        current_node.cell.style.opacity = this.settings.pathOpacity;
+                        current_node.cell.style.backgroundColor = this.settings.pathColor;
                         out.push(current_node.cell)
                         current_node = current_node.prev
                     }
                     console.log(out)
                     return
                 }
-                const children = this.arr.get2DNeighborsWithWeight(current_node.cell.row, current_node.cell.col);
+                current_node.cell.style.opacity = this.settings.visitedOpacity;
+                const children = this.arr.get2DNeighbors(current_node.cell.row, current_node.cell.col, {withWeight: true, allowDiagonals: this.settings.allowDiagonals});
                 for(let child_node of children){ 
                     if ( child_node.dist == undefined ) {
                         child_node.dist = current_node.dist + child_node.weight;

@@ -74,7 +74,7 @@ path-finding-simulator {
     flex-direction: column;
     flex-wrap: wrap;
     position: absolute;
-    bottom: -120px; 
+    bottom: -100px; 
 }
 
 .grid-map {
