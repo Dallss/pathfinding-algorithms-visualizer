@@ -69,6 +69,10 @@ class Simulator extends HTMLElement {
         this.start_cell = null
         this.end_cell = null 
         this.cell_click_handler = 'wall'
+
+        this.settings = {
+            cellSize: 28
+        }
     }
     connectedCallback() {
         this.algo = this.getAttribute('algo') || 'bfs';
@@ -179,8 +183,8 @@ class Simulator extends HTMLElement {
         grid_container_div.classList.add('grid-map')
         this.grid = grid_container_div
 
-        grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, 40px)`;
-        grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, 40px)`;
+        grid_container_div.style.gridTemplateColumns = `repeat(${this.cols}, ${this.settings.cellSize}px)`;
+        grid_container_div.style.gridTemplateRows = `repeat(${this.rows}, ${this.settings.cellSize}px)`;
 
         for (let r = 0; r < this.rows; r++) {
             const col = []
@@ -582,7 +586,7 @@ class Simulator extends HTMLElement {
         
         weight_button.addEventListener('click', () => {
             this.cell_click_handler = this.cell_click_handler === 'wall' ? 'weight' : 'wall';
-            weight_button.innerHTML = weight_button.innerHTML === 'add walls' ? 'add weight': 'add walls';
+            weight_button.innerHTML = weight_button.innerHTML === 'Add walls' ? 'Add weight': 'Add walls';
             weight_button.classList.toggle('add_walls_state');
         });
           

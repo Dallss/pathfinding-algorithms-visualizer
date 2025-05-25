@@ -41,10 +41,12 @@ class Draggable extends HTMLElement {
     
       this.isDragging = true;
     
-      // Use getBoundingClientRect for zoom-safe offset calculation
+      // Calculate the element's world position
       const rect = e.currentTarget.getBoundingClientRect();
-      this.offsetX = e.clientX - rect.left;
-      this.offsetY = e.clientY - rect.top;
+      const worldElementX = (rect.left - pan.x) / window.scale;
+      const worldElementY = (rect.top - pan.y) / window.scale;
+      this.offsetX = (e.clientX - pan.x) / window.scale - worldElementX;
+      this.offsetY = (e.clientY - pan.y) / window.scale - worldElementY;
     
       this.style.position = 'absolute'; // ensure draggable
       this.style.zIndex = 1000;
@@ -54,8 +56,11 @@ class Draggable extends HTMLElement {
       let offset = { x: 0, y: 0 };
       if (!this.isDragging) return;
   
-      const x = (e.clientX - pan.x) / window.scale - this.offsetX;
-      const y = (e.clientY - pan.y) / window.scale - this.offsetY;
+      // Calculate mouse position in world coordinates
+      const worldMouseX = (e.clientX - pan.x) / window.scale;
+      const worldMouseY = (e.clientY - pan.y) / window.scale;
+      const x = worldMouseX - this.offsetX;
+      const y = worldMouseY - this.offsetY;
       this.style.left = `${x}px`;
       this.style.top = `${y}px`;
     }
