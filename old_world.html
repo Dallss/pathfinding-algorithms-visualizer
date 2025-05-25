@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Custom Grid Element</title>
+        <link rel="stylesheet" href="./styles.css">
+    </head>
+    <body>
+
+            <div class="fab-container">
+                <div class="fab-button">+</div>
+                <div class="fab-dropdown hidden" id="fabDropdown">
+                    <button class="dropdown-btn" data-algo="bfs" data-title="BFS">BFS</button>
+                    <button class="dropdown-btn" data-algo="dfs" data-title="DFS">DFS</button>
+                    <button class="dropdown-btn" data-algo="djk" data-title="Djkstra's">Djkstra's</button>
+                    <button class="dropdown-btn" data-algo="astar" data-title="A* - Manhattan Distance">A*</button>
+                </div>                
+            </div>
+            
+            <draggable-element>
+                <path-finding-simulator algo="djk" title="djkhaled">
+                </path-finding-simulator>
+            </draggable-element>
+            
+        
+            <script type="module">
+                import './custom_elements/simulator.js';
+                import './custom_elements/draggable.js';
+
+                let selected_simulator = null;
+
+                function newSim(attributes) {
+                    const draggable = document.createElement('draggable-element');
+                    const simulator = document.createElement('path-finding-simulator');
+
+                    selected_simulator = simulator;
+                    simulator.addEventListener('click', () => {
+                        if (selected_simulator.parentElement && selected_simulator !== simulator) {
+                            selected_simulator.parentElement.classList.remove('selected-simulator');
+                        }
+
+                        if(simulator.parentElement)
+                            simulator.parentElement.classList.add('selected-simulator');
+                        selected_simulator = simulator;
+                    });
+
+
+                    for (const [key, value] of Object.entries(attributes)) {
+                        simulator.setAttribute(key, value);
+                    }
+                    document.body.appendChild(draggable);
+                    draggable.appendChild(simulator);
+                }
+        
+                function toggleDropdown() {
+                    const dropdown = document.getElementById('fabDropdown');
+                    dropdown.classList.toggle('hidden');
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const fabButton = document.querySelector('.fab-button');
+                    const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
+                    fabButton.addEventListener('click', toggleDropdown);
+
+                    dropdownButtons.forEach(button => {
+                        button.addEventListener('click', () => {
+                            const algo = button.dataset.algo;
+                            const title = button.dataset.title;
+                            newSim({ algo, title });
+                        });
+                    });
+                });
+
+            </script>
+    </body>
+</html>

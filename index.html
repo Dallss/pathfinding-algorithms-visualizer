@@ -1,76 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Custom Grid Element</title>
-        <link rel="stylesheet" href="./styles.css">
-    </head>
-    <body>
+<head>
+  <meta charset="UTF-8" />
+  <title>Dotted World with Pan, Zoom, and Drag</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./styles.css">
 
-            <div class="fab-container">
-                <div class="fab-button">+</div>
-                <div class="fab-dropdown hidden" id="fabDropdown">
-                    <button class="dropdown-btn" data-algo="bfs" data-title="BFS">BFS</button>
-                    <button class="dropdown-btn" data-algo="dfs" data-title="DFS">DFS</button>
-                    <button class="dropdown-btn" data-algo="djk" data-title="Djkstra's">Djkstra's</button>
-                    <button class="dropdown-btn" data-algo="astar" data-title="A* - Manhattan Distance">A*</button>
-                </div>                
-            </div>
-            
-            <draggable-element>
-                <path-finding-simulator algo="djk" title="djkhaled">
-                </path-finding-simulator>
-            </draggable-element>
-            
+</head>
+<body>
+  <div id="viewport">
+    <div class="fab-container">
+      <div class="fab-button">+</div>
+      <div class="fab-dropdown hidden" id="fabDropdown">
+          <button class="dropdown-btn" data-algo="bfs" data-title="BFS">BFS</button>
+          <button class="dropdown-btn" data-algo="dfs" data-title="DFS">DFS</button>
+          <button class="dropdown-btn" data-algo="djk" data-title="Djkstra's">Djkstra's</button>
+          <button class="dropdown-btn" data-algo="astar" data-title="A* - Manhattan Distance">A*</button>
+      </div>                
+    </div>
+    <div id="world">
+    </div>
+  </div>
+
+  <script type="module">
+    import './custom_elements/simulator.js';
+    import './custom_elements/draggable.js'
+
+    const viewport = document.getElementById('viewport');
+    const world = document.getElementById('world');
+
+    window.pan = { x: 0, y: 0 };
+    window.scale = 1;
+    window.isPanning = false;
+    window.start = { x: 0, y: 0 };
+
+    function clampPan() {
+      const worldRect = {
+        width: world.offsetWidth * window.scale,
+        height: world.offsetHeight * window.scale,
+      };
+      const viewportRect = {
+        width: viewport.clientWidth,
+        height: viewport.clientHeight,
+      };
+
+      const minX = viewportRect.width - worldRect.width;
+      const minY = viewportRect.height - worldRect.height;
+
+      window.pan.x = Math.min(0, Math.max(minX, window.pan.x));
+      window.pan.y = Math.min(0, Math.max(minY, window.pan.y));
+    }
+
+    function updateTransform() {
+      clampPan();
+      world.style.transform = `translate(${window.pan.x}px, ${window.pan.y}px) scale(${window.scale})`;
+    }
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.draggable-element')) return;
+      window.isPanning = true;
+      window.start = { x: e.clientX - window.pan.x, y: e.clientY - window.pan.y };
+      viewport.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!window.isPanning) return;
+      window.pan.x = e.clientX - window.start.x;
+      window.pan.y = e.clientY - window.start.y;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      window.isPanning = false;
+      viewport.style.cursor = 'grab';
+    });
+
+    // Zooming (mouse-centered)
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.001;
+      const newScale = Math.min(Math.max(0.1, window.scale + delta), 5);
+
+      const rect = viewport.getBoundingClientRect();
+      const worldX = (e.clientX - rect.left - window.pan.x) / window.scale;
+      const worldY = (e.clientY - rect.top - window.pan.y) / window.scale;
+
+      window.pan.x -= worldX * (newScale - window.scale);
+      window.pan.y -= worldY * (newScale - window.scale);
+      window.scale = newScale;
+
+      updateTransform();
+    });
+
+    let selected_simulator = null;
+
+    function newSim(attributes) {
+        const draggable = document.createElement('draggable-element');
+        const simulator = document.createElement('path-finding-simulator');
+        const world = document.getElementById('world');
+
+        // Calculate center of visible world (in world coordinates)
+        const viewportRect = viewport.getBoundingClientRect();
+        const worldRect = world.getBoundingClientRect();
+        // Center of viewport in screen coordinates
+        const centerX = viewportRect.width / 2 - 300;
+        const centerY = viewportRect.height / 2 - 300;
+        // Convert to world coordinates (account for pan and scale)
+        const worldX = (centerX - window.pan.x) / window.scale;
+        const worldY = (centerY - window.pan.y) / window.scale;
+        // Place draggable so its top-left is at the center (adjust for its own size after render if needed)
+        draggable.style.left = `${worldX}px`;
+        draggable.style.top = `${worldY}px`;
+
+        selected_simulator = simulator;
+        simulator.addEventListener('click', () => {
+            if (selected_simulator.parentElement && selected_simulator !== simulator) {
+                selected_simulator.parentElement.classList.remove('selected-simulator');
+            }
+
+            if(simulator.parentElement)
+                simulator.parentElement.classList.add('selected-simulator');
+            selected_simulator = simulator;
+        });
+
+        for (const [key, value] of Object.entries(attributes)) {
+            simulator.setAttribute(key, value);
+        }
+        world.appendChild(draggable);
+        draggable.appendChild(simulator);
+    }
+
+    function toggleDropdown() {
+        const dropdown = document.getElementById('fabDropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Center the world in the viewport
+        const viewportRect = viewport.getBoundingClientRect();
+        const worldRect = world.getBoundingClientRect();
+        window.pan.x = (viewportRect.width - world.offsetWidth) / 2;
+        window.pan.y = (viewportRect.height - world.offsetHeight) / 2;
+        updateTransform();
+        // Add a default simulator on load
+        newSim({ algo: 'djk', title: 'djkhaled' });
         
-            <script type="module">
-                import './simulator.js';
-                import './draggable.js'
+        const fabButton = document.querySelector('.fab-button');
+        const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
+        fabButton.addEventListener('click', toggleDropdown);
 
-                let selected_simulator = null;
-
-                function newSim(attributes) {
-                    const draggable = document.createElement('draggable-element');
-                    const simulator = document.createElement('path-finding-simulator');
-
-                    selected_simulator = simulator;
-                    simulator.addEventListener('click', () => {
-                        if (selected_simulator.parentElement && selected_simulator !== simulator) {
-                            selected_simulator.parentElement.classList.remove('selected-simulator');
-                        }
-
-                        if(simulator.parentElement)
-                            simulator.parentElement.classList.add('selected-simulator');
-                        selected_simulator = simulator;
-                    });
-
-
-                    for (const [key, value] of Object.entries(attributes)) {
-                        simulator.setAttribute(key, value);
-                    }
-                    document.body.appendChild(draggable);
-                    draggable.appendChild(simulator);
-                }
-        
-                function toggleDropdown() {
-                    const dropdown = document.getElementById('fabDropdown');
-                    dropdown.classList.toggle('hidden');
-                }
-
-                document.addEventListener('DOMContentLoaded', () => {
-                    const fabButton = document.querySelector('.fab-button');
-                    const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
-                    fabButton.addEventListener('click', toggleDropdown);
-
-                    dropdownButtons.forEach(button => {
-                        button.addEventListener('click', () => {
-                            const algo = button.dataset.algo;
-                            const title = button.dataset.title;
-                            newSim({ algo, title });
-                        });
-                    });
-                });
-
-            </script>
-    </body>
+        dropdownButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const algo = button.dataset.algo;
+                const title = button.dataset.title;
+                newSim({ algo, title });
+            });
+        });
+    });
+  </script>
+</body>
 </html>
