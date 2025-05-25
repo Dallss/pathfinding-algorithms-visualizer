@@ -19,6 +19,9 @@
       </div>                
     </div>
     <div id="world">
+      <div class="world-header">
+        Click upper-right button to Start!
+      </div>
     </div>
   </div>
 
@@ -99,19 +102,6 @@
         const simulator = document.createElement('path-finding-simulator');
         const world = document.getElementById('world');
 
-        // Calculate center of visible world (in world coordinates)
-        const viewportRect = viewport.getBoundingClientRect();
-        const worldRect = world.getBoundingClientRect();
-        // Center of viewport in screen coordinates
-        const centerX = viewportRect.width / 2 - 300;
-        const centerY = viewportRect.height / 2 - 300;
-        // Convert to world coordinates (account for pan and scale)
-        const worldX = (centerX - window.pan.x) / window.scale;
-        const worldY = (centerY - window.pan.y) / window.scale;
-        // Place draggable so its top-left is at the center (adjust for its own size after render if needed)
-        draggable.style.left = `${worldX}px`;
-        draggable.style.top = `${worldY}px`;
-
         selected_simulator = simulator;
         simulator.addEventListener('click', () => {
             if (selected_simulator.parentElement && selected_simulator !== simulator) {
@@ -128,6 +118,21 @@
         }
         world.appendChild(draggable);
         draggable.appendChild(simulator);
+  
+        // Calculate center of visible world (in world coordinates)
+        const viewportRect = viewport.getBoundingClientRect();
+        const worldRect = world.getBoundingClientRect();
+        // Center of viewport in screen coordinates
+        const centerX = viewportRect.width / 2;
+        const centerY = viewportRect.height / 2;
+        // Convert to world coordinates (account for pan and scale)
+        console.log(draggable.clientHeight);
+        
+        const worldX = (centerX - window.pan.x) / window.scale - ( draggable.clientHeight / 2);
+        const worldY = (centerY - window.pan.y) / window.scale - ( draggable.clientWidth / 2) - 100;
+        // Place draggable so its top-left is at the center (adjust for its own size after render if needed)
+        draggable.style.left = `${worldX}px`;
+        draggable.style.top = `${worldY}px`;
     }
 
     function toggleDropdown() {

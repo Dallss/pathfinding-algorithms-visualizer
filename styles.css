@@ -55,7 +55,7 @@ path-finding-simulator {
     display: flex;
     flex-direction: column;
     border: 5px solid rgb(125, 51, 140);
-    background-color: #64116092;
+    background-color: #641160a0;
     padding: 5px;
     border-radius: 8px;      
     resize: both;
@@ -279,6 +279,21 @@ html, body {
     background-size: 20px 20px;
   }
 
+  .world-header {
+    position: absolute;
+    width: fit-content;
+    height: fit-content;
+    padding: 20px;
+    font-size: xx-large;
+    font-family:monospace;
+    background-color: #f0f0f0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(0, 0, 0, 0.324);
+    user-select: none;
+  }
+  
   .component {
     position: absolute;
   }
