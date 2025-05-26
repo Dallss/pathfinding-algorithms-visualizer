@@ -46,9 +46,8 @@ Array.prototype.get2DNeighbors = function(current_row, current_col, options = {}
 
     return neighbors;
 };
-
-
-
+// ------------------------------------------------------------------------------------------------//
+// ------------------------------------------------------------------------------------------------//
 
 class Simulator extends HTMLElement {
     constructor() {
@@ -86,7 +85,6 @@ class Simulator extends HTMLElement {
         this.render();
     }
     reset() {
-        // Clear all pending timeouts
         if (this.timeouts && this.timeouts.length) {
             this.timeouts.forEach(timeoutId => clearTimeout(timeoutId));
             this.timeouts = [];
@@ -97,42 +95,16 @@ class Simulator extends HTMLElement {
         this.end_cell = null 
         this.connectedCallback();
     }
-    static Queue = class {
-        constructor() {
-        this.items = {};
-        this.head = 0;
-        this.tail = 0;
-        }
-
-        push(element) {
-            element.style.backgroundColor = 'blue';
-            element.isVisited = true;
-            this.items[this.tail] = element;
-            this.tail++;
-        }
-
-        pop() {
-            if (this.isEmpty()) return null;
-
-            const value = this.items[this.head];
-            delete this.items[this.head];
-            this.head++;
-            value.style.backgroundColor = 'yellow';
-            return value;
-        }
-
-        isEmpty() {
-            return this.head === this.tail;
-        }
-    };
     static Stack = class {
-        constructor() {
+        constructor({colors = {pop: 'gray', push: 'yellow' }} = {}) {
             this.items = {};
             this.top = 0;
+            this.pushColor  = colors.push
+            this.popColor = colors.pop
         }
     
         push(element) {
-            element.style.backgroundColor = 'blue';
+            element.style.backgroundColor = this.pushColor;
             element.isVisited = true;
             this.items[this.top] = element;
             this.top++;
@@ -140,11 +112,11 @@ class Simulator extends HTMLElement {
     
         pop() {
             if (this.isEmpty()) return null;
-    
+
             this.top--;
             const value = this.items[this.top];
             delete this.items[this.top];
-            value.style.backgroundColor = 'yellow';
+            value.style.backgroundColor = this.popColor;
             return value;
         }
     
@@ -152,38 +124,52 @@ class Simulator extends HTMLElement {
             return this.top === 0;
         }
     };
-    static PriorityQueue = class {
-        constructor({ key = 'dist', colors = { push: 'yellow', pop: 'gray', weighted: true }}) {
+    static Queue = class {
+        constructor({ 
+            priorityKey = 'dist', 
+            colors = { push: 'yellow', pop: 'gray', weighted: true }, 
+            isPriority = false 
+        }) {
             this.items = [];
-            this.key = key;
+            this.priorityKey = priorityKey;
             this.colors = colors;
-        }        
+            this.isPriority = isPriority;
+        }
     
         push(node) {
-            if (node.cell.type != 'start') node.cell.style.backgroundColor = this.colors.push;
-            
+            if (node.cell?.type !== 'start') {
+                node.cell.style.backgroundColor = this.colors.push;
+            }
+    
             this.items.push(node);
-
-            this.items.sort((a,b) => a[this.key]-b[this.key])
-            .forEach((item,i,arr) => {
-              if(item.cell.type !='start'){
-                item.cell.style.backgroundColor = this.color;
-                if (this.colors.weighted) item.cell.style.opacity = (1 - i / arr.length).toFixed(2);
-              }
+    
+            if (this.isPriority) {
+                // Sort by priority
+                this.items.sort((a, b) => a[this.priorityKey] - b[this.priorityKey]);
+            }
+    
+            this.items.forEach((item, i, arr) => {
+                if (item.cell.type !== 'start') {
+                    item.cell.style.backgroundColor = this.colors.push;
+                    if (this.colors.weighted && this.isPriority) {
+                        item.cell.style.opacity = (1 - i / arr.length).toFixed(2);
+                    }
+                }
             });
-          
         }
     
         pop() {
             if (this.isEmpty()) return null;
+    
             const node = this.items.shift();
-
-            if (node.cell.type != 'start') node.cell.style.backgroundColor = this.colors.pop;
-
-            // Remove weight classes when popped
+    
+            if (node.cell.type !== 'start') {
+                node.cell.style.backgroundColor = this.colors.pop;
+            }
+    
             node.cell.classList.remove('weight-1', 'weight-2', 'weight-3');
-
             node.cell.style.opacity = '1';
+    
             return node;
         }
     
@@ -191,6 +177,7 @@ class Simulator extends HTMLElement {
             return this.items.length === 0;
         }
     };
+    
     
     buildGrid() {
         // Remove old grid if it exists
@@ -243,7 +230,7 @@ class Simulator extends HTMLElement {
                 }
                 const addWeight = () => {
                     if (cell.type === 'empty') {
-                        if (cell.weight < 0.8) cell.weight += 0.3;  // increase by 0.3 to fit 3 steps: 0.2 → 0.5 → 0.8
+                        if (cell.weight < 0.8) cell.weight += 0.3;
                 
                         // Clamp to 0.8 max and fix floating-point rounding
                         cell.weight = Math.min(0.8, Math.round(cell.weight * 10) / 10);
@@ -329,33 +316,34 @@ class Simulator extends HTMLElement {
     // TODO: This works, but clean it up soon
     getAlgo() {
         const bfs = (speed=20) => {
-            const queue = new Simulator.Queue();
-            let current_cell = this.start_cell;
-            queue.push(current_cell)
+            const queue = new Simulator.Queue({colors: this.settings.colors});
+            let current_node = { cell: this.start_cell, prev: null }
+            queue.push(current_node)
             const animate = () => {
-                if(current_cell === this.end_cell){
+                if(current_node.cell === this.end_cell){
                     console.log('congrats')
                     return
                 }
         
-                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col);
-                for(let n of neighbors){
-                    if (n.type != 'wall' && !n.isVisited){
-                        queue.push(n)
+                const neighbors = this.arr.get2DNeighbors(current_node.cell.row, current_node.cell.col);
+                for(let neighbor of neighbors){
+                    if (!neighbor.isVisited){
+                        neighbor.isVisited = true;
+                        queue.push({ cell: neighbor, prev: current_node });
                     }
                 }
                 if(queue.isEmpty()){
                     console.log('failed');
                     return
                 }
-                current_cell = queue.pop();
+                current_node = queue.pop();
                 const timeoutId = setTimeout(animate,speed);
                 this.timeouts.push(timeoutId);
             }
             animate();
         }
         const dfs = (speed=20) => {
-            const queue = new Simulator.Stack();
+            const queue = new Simulator.Stack({colors: {push: this.settings.colors.push, pop: this.settings.colors.pop}});
             let current_cell = this.start_cell;
             queue.push(current_cell)
             const animate = () => {
@@ -363,7 +351,7 @@ class Simulator extends HTMLElement {
                     console.log('congrats')
                     return
                 }
-                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col, {allowDiagonals:true});
+                const neighbors = this.arr.get2DNeighbors(current_cell.row, current_cell.col, {allowDiagonals: this.settings.allowDiagonals});
                 for(let n of neighbors){
                     if (!n.isVisited){
                         queue.push(n)
@@ -380,7 +368,7 @@ class Simulator extends HTMLElement {
             animate();
         }
         const djk = (speed=20) => {
-            const q = new Simulator.PriorityQueue({colors: this.settings.colors});
+            const q = new Simulator.Queue({isPriority: true, colors: this.settings.colors});
             const visited_cells = new Set();
 
             let current_node = { cell: this.start_cell, dist: 0, prev: null }
@@ -435,7 +423,7 @@ class Simulator extends HTMLElement {
             animate();
         }
         const astar = (speed=20) => {
-            const q = new Simulator.PriorityQueue({key: 'mdist', colors: this.settings.colors});
+            const q = new Simulator.Queue({isPriority: true, priorityKey: 'mdist',colors: this.settings.colors});
             const visited_cells = new Set();
 
             let current_node = { cell: this.start_cell, dist: 0, prev: null }
