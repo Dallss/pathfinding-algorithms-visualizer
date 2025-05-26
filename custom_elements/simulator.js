@@ -178,7 +178,6 @@ class Simulator extends HTMLElement {
         }
     };
     
-    
     buildGrid() {
         // Remove old grid if it exists
         if (this.grid) this.grid.remove();
@@ -289,20 +288,22 @@ class Simulator extends HTMLElement {
                     
                     sourceCell.setType(targetCell.type);
                     targetCell.setType(data.type);    
-
-                    const mouseUpEvent = new MouseEvent('mouseup', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window,
-                    });
-                      
-                    window.dispatchEvent(mouseUpEvent); // bandage fix to fire mouse up on drop (for custonm logic)
                 });
                 
                 col.push(cell)
             }
             this.arr.push(col)
         }
+
+        document.addEventListener('dragend', (e) => {
+            const mouseUpEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+            });
+            window.dispatchEvent(mouseUpEvent);
+        });
+
         const start_cell = this.arr[0][0]
         const end_cell = this.arr[this.rows-1][this.cols-1]
         start_cell.setType('start')
