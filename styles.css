@@ -23,7 +23,7 @@ body {
     justify-content: space-between;
     gap: 10px;
     position: relative;
-    background-color: rgb(129, 34, 113);
+    background-color: rgb(96, 72, 144);
     /* background: linear-gradient(135deg, #7f5bff 0%, #a049ff 100%); */
     color: rgb(255, 255, 255);
     font-size: 20px;
@@ -47,11 +47,11 @@ body {
     justify-content: flex-start;
     transform: translateY(-2px) scale(1.02);
     padding: 15px 15px;
-    background-color: rgb(168, 113, 188);
+    background-color: rgba(99, 19, 128, 0.635);
 }
 
 .fab-button-text {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: monospace;
     font-weight: 700;
     letter-spacing: 0.04em;
     max-width: 170px;
