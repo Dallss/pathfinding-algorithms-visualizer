@@ -11,17 +11,28 @@
 <body>
   <div id="viewport">
     <div class="fab-container">
-      <div class="fab-button">+</div>
-      <div class="fab-dropdown hidden" id="fabDropdown">
-          <button class="dropdown-btn" data-algo="bfs" data-title="BFS">BFS</button>
-          <button class="dropdown-btn" data-algo="dfs" data-title="DFS">DFS</button>
-          <button class="dropdown-btn" data-algo="djk" data-title="Djkstra's">Djkstra's</button>
-          <button class="dropdown-btn" data-algo="astar" data-title="A* - Manhattan Distance">A*</button>
-      </div>                
+      <div class="fab-button" id="fabButton" aria-label="Open algorithm toolbar" aria-expanded="false" role="button" tabindex="0">
+        <span class="fab-button-text">Add Simulator</span>
+        <span class="fab-button-plus" aria-hidden="true">＋</span>
+        <div class="fab-actions hidden" id="fabDropdown">
+            <button class="dropdown-btn" data-algo="bfs" data-title="BFS" aria-label="Spawn BFS simulator">
+              <img class="btn-icon-img" src="assets/button_icons/BFS_icon.png" alt="">
+            </button>
+            <button class="dropdown-btn" data-algo="dfs" data-title="DFS" aria-label="Spawn DFS simulator">
+              <img class="btn-icon-img" src="assets/button_icons/DFS_icon.png" alt="">
+            </button>
+            <button class="dropdown-btn" data-algo="djk" data-title="Djkstra's" aria-label="Spawn Dijkstra simulator">
+              <img class="btn-icon-img" src="assets/button_icons/Dijkstra_icon.png" alt="">
+            </button>
+            <button class="dropdown-btn" data-algo="astar" data-title="A* - Manhattan Distance" aria-label="Spawn A star simulator">
+              <img class="btn-icon-img" src="assets/button_icons/Astar_icon.png" alt="">
+            </button>
+        </div>
+      </div>
     </div>
     <div id="world">
       <div class="world-header">
-       <h4>Click upper-right button to Start!</h4> 
+       <h4>Click bottom-center button to Start!</h4> 
        <p>Try Interacting with the graphs!</p>
        <p>Add walls, move points, change dimensions.</p>
        <p>Press reset after changing rows or cols</p> 
@@ -147,7 +158,9 @@
 
     function toggleDropdown() {
         const dropdown = document.getElementById('fabDropdown');
-        dropdown.classList.toggle('hidden');
+        const fabButton = document.getElementById('fabButton');
+        const isHidden = dropdown.classList.toggle('hidden');
+        fabButton.setAttribute('aria-expanded', String(!isHidden));
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -160,16 +173,36 @@
         // Add a default simulator on load
         // newSim({ algo: 'djk', title: 'Guess the algo' });
         
-        const fabButton = document.querySelector('.fab-button');
-        const dropdownButtons = document.querySelectorAll('.fab-dropdown .dropdown-btn');
-        fabButton.addEventListener('click', toggleDropdown);
+        const fabButton = document.getElementById('fabButton');
+        const dropdownButtons = document.querySelectorAll('.fab-actions .dropdown-btn');
+        fabButton.addEventListener('click', (event) => {
+            if (event.target.closest('.dropdown-btn')) return;
+            toggleDropdown();
+        });
+        fabButton.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleDropdown();
+            }
+        });
 
         dropdownButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
                 const algo = button.dataset.algo;
                 const title = button.dataset.title;
                 newSim({ algo, title });
+                document.getElementById('fabDropdown').classList.add('hidden');
+                fabButton.setAttribute('aria-expanded', 'false');
             });
+        });
+
+        document.addEventListener('click', (event) => {
+            const fabContainer = document.querySelector('.fab-container');
+            if (!fabContainer.contains(event.target)) {
+                document.getElementById('fabDropdown').classList.add('hidden');
+                fabButton.setAttribute('aria-expanded', 'false');
+            }
         });
     });
   </script>

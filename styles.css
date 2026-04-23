@@ -7,29 +7,90 @@ body {
 
 .fab-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 9999;
 }
 
 .fab-button {
-    width: 50px;
-    height: 50px;
-    background-color: #4CAF50;
-    color: white;
-    font-size: 30px;
-    line-height: 50px;
-    text-align: center;
-    border-radius: 5px;
+    width: 220px;
+    height: 70px;
+    margin: 0;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    position: relative;
+    background-color: rgb(129, 34, 113);
+    /* background: linear-gradient(135deg, #7f5bff 0%, #a049ff 100%); */
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    line-height: 1;
+    border: none;
+    border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    user-select: none;
+    box-shadow: 0 14px 30px rgba(101, 56, 173, 0.45);
+    transition: width 0.25s ease, transform 0.2s ease, filter 0.2s ease;
 }
 
-.fab-dropdown {
+.fab-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.06);
+}
+
+.fab-button[aria-expanded="true"] {
+    width: 420px;
+    border-radius: 20px;
+    justify-content: flex-start;
+    transform: translateY(-2px) scale(1.02);
+    padding: 15px 15px;
+    background-color: rgb(168, 113, 188);
+}
+
+.fab-button-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    max-width: 170px;
+    padding-left: 10px;
+    opacity: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+}
+
+.fab-button-plus {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.24);
+    font-size: 28px;
+    transition: transform 0.2s ease;
+}
+
+.fab-button[aria-expanded="true"] .fab-button-plus {
+    transform: rotate(45deg);
+}
+
+.fab-button[aria-expanded="true"] .fab-button-text {
+    max-width: 0;
+    opacity: 0;
+}
+
+.fab-actions {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-top: 10px;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-left: 6px;
+    padding-right: 6px;
 }
 
 /* Hide via class */
@@ -38,15 +99,35 @@ body {
 }
 
 .dropdown-btn {
-    background-color: #00000038;
-    border: 1px solid rgba(0, 0, 0, 0.323);
-    border-radius: 3px;
-    color: white;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    /* background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 12px;
+    color: white; */
     font-weight: 700;
-    font-size: 20px;
-    padding: 10px 25px;
-    margin: 5px 0;
+    font-size: 12px;
+    letter-spacing: 0.03em;
     cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.dropdown-btn:hover {
+    background: rgba(255, 255, 255, 0.27);
+    transform: translateY(-1px);
+}
+
+.btn-icon-img {
+    width: 70px;
+    aspect-ratio: 1/1;
+    object-fit: contain;
+    pointer-events: none;
 }
 
 /* simulator.js */
@@ -311,7 +392,7 @@ html, body {
     top: calc(50% - 50px); /* Moved up 50px */
     left: 50%;
     transform: translate(-50%, -50%);
-    color: rgba(0, 0, 0, 0.324);
+    color: rgba(0, 0, 0, 0.668);
     user-select: none;
   }
   
